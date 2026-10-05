@@ -43,6 +43,7 @@ section{padding:84px 0 0}
 .h{display:flex;align-items:baseline;gap:16px;margin-bottom:38px}
 .h span{font:600 13px var(--sans);color:var(--or);letter-spacing:.1em}
 h2{font:800 clamp(28px,4vw,38px)/1.1 var(--serif);color:var(--navy);margin:0;letter-spacing:-.01em}
+.lab-prev{display:block;max-width:780px;margin:6px 0 16px;border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(19,40,63,.08);transition:border-color .2s,box-shadow .2s}.lab-prev:hover{border-color:var(--or);box-shadow:0 10px 28px rgba(19,40,63,.14)}.lab-prev img{display:block;width:100%;height:auto}
 .tl{position:relative;padding-left:34px;border-left:2px solid var(--line);margin-left:6px}
 .it{position:relative;margin-bottom:46px}
 .it:before{content:"";position:absolute;left:-43px;top:8px;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--or)}
@@ -84,7 +85,7 @@ footer{padding:26px 0;font-size:14px;color:var(--mute);text-align:center}
 </head>
 <body>
 <nav><div class="w"><button class="btn o sm" data-dl type="button">&darr; Download CV</button>
-<ul><li><a href="#work" data-go="work">Experience</a></li><li><a href="#project" data-go="project">Project</a></li><li><a href="#about" data-go="about">Skills</a></li><li><a href="#site" data-go="site">On site</a></li><li><a href="#contact" data-go="contact">Contact</a></li></ul></div></nav>
+<ul><li><a href="#work" data-go="work">Experience</a></li><li><a href="#project" data-go="project">Projects</a></li><li><a href="#about" data-go="about">Skills</a></li><li><a href="#site" data-go="site">On site</a></li><li><a href="#contact" data-go="contact">Contact</a></li></ul></div></nav>
 
 <main class="w" id="top">
 <header class="hero">
@@ -133,8 +134,20 @@ footer{padding:26px 0;font-size:14px;color:var(--mute);text-align:center}
 </section>
 
 <section id="project">
-<div class="h"><span>02</span><h2>Project</h2></div>
+<div class="h"><span>02</span><h2>Projects</h2></div>
 <div class="tl"><div class="it">
+<div class="top"><h3>Structural Analysis Lab</h3><span class="date">Personal project · 2026</span></div>
+<div class="role">Interactive 2D frame &amp; truss solver · JavaScript</div>
+<a class="lab-prev" href="lab/" target="_blank" rel="noopener"><img src="lab/preview.jpg" alt="Structural Analysis Lab showing a portal frame with its bending moment diagram and deflected shape" loading="lazy"></a>
+<ul>
+<li>Direct stiffness solver for 2D frames and trusses that runs entirely in the browser, with results updating live as the model changes.</li>
+<li>Pins, rollers, fixed supports and sliders anywhere; point loads, partial and trapezoidal distributed loads and moments in any direction.</li>
+<li>Dead, live, snow and wind load cases with NBCC-style load combinations and ULS envelopes.</li>
+<li>Bending moment, shear, axial and deflected-shape diagrams with an L/360 deflection check, verified against hand calculations.</li>
+</ul>
+<div class="btns" style="margin-top:16px"><a class="btn p" href="lab/" target="_blank" rel="noopener">Open the lab &#8599;</a></div>
+</div>
+<div class="it">
 <div class="top"><h3>Topographic Survey and Site Layout</h3><span class="date">CIVE 251 · Team of 5</span></div>
 <div class="role">Engineering Surveying</div>
 <ul>
@@ -203,7 +216,6 @@ var bin=atob(PDF),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]
 var blob=new Blob([u],{type:"application/pdf"}),d=null,saved=true;
 function show(){if(w){try{w.location.href=URL.createObjectURL(blob)}catch(e){}}}
 function drop(){if(w){try{w.close()}catch(e){}}}
-try{if(window.claude&&claude.use)d=await claude.use("downloads")}catch(e){}
 if(!d){plain(blob);show();return}
 try{await d.save({filename:FN,data:blob});show()}catch(e){if(e&&e.code==="declined"){drop()}else{plain(blob);show()}}
 });});
