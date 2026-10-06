@@ -90,7 +90,7 @@ code{font:12px var(--mono);background:var(--hover);padding:1px 5px;border-radius
 <header class="hd">
 <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 19h18M6 19V9l6-4 6 4v10" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M6 9l12 10M18 9L6 19" stroke="#fff" stroke-width="1.2" opacity=".7"/></svg></span>
 <div><b>Structural Analysis Lab</b><a href="https://ymohammed1254.github.io/">by Yousuf Mohammed ↗</a></div></div>
-<div class="hc"><label class="ctl">Start from (replaces)<select id="pre"></select></label><label class="ctl">Load combination<select id="cmb"></select></label><label class="ctl">Diagram<span class="seg" id="dgs"></span></label></div>
+<div class="hc"><label class="ctl">Start from (replaces)<select id="pre"></select></label><label class="ctl">Load combination<select id="cmb"></select></label><label class="ctl">Diagram<span class="seg" id="dgs"></span></label><label class="ctl">Truss forces<span class="seg"><button id="tcb" class="on" title="Show tension / compression on truss members">T / C</button></span></label></div>
 </header>
 <main class="body">
 <aside class="pane">
@@ -257,10 +257,13 @@ function render(){
  if(r&&r.ord&&(r.ord.length>1||r.badSet.size))r.ord.forEach((cid,si)=>{const pts=nd.filter((_,i)=>r.comp[i]===cid);if(!pts.length)return;const x0=Math.min(...pts.map(p=>X(p.x))),y0=Math.min(...pts.map(p=>Y(p.y))),bd=r.badSet.has(cid),t=`S${si+1}${bd?" · mechanism":""}`,w=t.length*7+14;h+=`<g><rect x="${x0-14}" y="${y0-58}" width="${w}" height="20" rx="10" fill="${bd?"var(--bad)":"var(--selbg)"}" stroke="${bd?"#c74440":"var(--selbd)"}"/><text x="${x0-14+w/2}" y="${y0-44}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${bd?"#c74440":"#2d70b3"}">${t}</text></g>`});
  nd.forEach((p,i)=>{if(p.sup)h+=FL("s",i)?`<g class="popn">${supG(p,i,X(p.x),Y(p.y))}</g>`:supG(p,i,X(p.x),Y(p.y))});
  let wmx=1e-9;S.L.forEach(l=>{if(l.k==="md")wmx=Math.max(wmx,Math.abs(l.w1),Math.abs(l.w2))});const stack={};
+ const ptPos=l=>{if(l.k==="nf"){const p=nd[l.i];return p?[X(p.x),Y(p.y)]:null}const m=S.m[l.j];if(!m)return null;const a=nd[m.a],b=nd[m.b];return[X(a.x+(b.x-a.x)*l.t),Y(a.y+(b.y-a.y)*l.t)]},pg={},pgi={};
+ S.L.forEach((l,li)=>{if(l.k!=="nf"&&l.k!=="mp")return;const pp=ptPos(l);if(!pp)return;const ea=(((l.P>=0?l.ang:l.ang+180)%360)+360)%360,key=`${Math.round(pp[0])},${Math.round(pp[1])},${Math.round(ea)}`,L=Math.min(26+Math.abs(l.P)*1.1,95);(pg[key]=pg[key]||{L:0,n:0});pg[key].L=Math.max(pg[key].L,L);pgi[li]=[key,pg[key].n++]});
  S.L.forEach((l,li)=>{const h0=h.length;(()=>{const k=l.c,col=CC[k];
   if(l.k==="nf"||l.k==="mp"){let px,py;if(l.k==="nf"){const p=nd[l.i];if(!p)return;px=X(p.x);py=Y(p.y)}else{const m=S.m[l.j];if(!m)return;const a=nd[m.a],b=nd[m.b];px=X(a.x+(b.x-a.x)*l.t);py=Y(a.y+(b.y-a.y)*l.t)}
    const r2=l.ang*Math.PI/180,dx=Math.cos(r2),dy=-Math.sin(r2),L=Math.min(26+Math.abs(l.P)*1.1,95),sgn=l.P>=0?1:-1,x1=px-dx*sgn*(L+6),y1=py-dy*sgn*(L+6),x2=px-dx*sgn*6,y2=py-dy*sgn*6;
-   h+=ar(x1,y1,x2,y2,k,2.4)+`<text x="${x1-dx*sgn*8}" y="${y1-dy*sgn*8+4}" text-anchor="middle" font-size="11" font-weight="700" fill="${col}">${f1(Math.abs(l.P))} kN ${k}</text><line class="lh" data-l="${li}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="14"/>`}
+   const[gk,gi]=pgi[li]||[null,0],G=gk?pg[gk]:{L,n:1},tx0=px-dx*sgn*(G.L+6),ty0=py-dy*sgn*(G.L+6),vert=Math.abs(dy)>=Math.abs(dx),ux=-dx*sgn,uy=-dy*sgn,lx=vert?tx0+ux*(9+gi*14):tx0+ux*(G.n>1?30:9),ly=vert?ty0+uy*(9+gi*14)+4:ty0+uy*9+4+(gi-(G.n-1)/2)*14;
+   h+=ar(x1,y1,x2,y2,k,2.4)+`<text x="${lx}" y="${ly}" text-anchor="${vert?"middle":ux>0?"start":"end"}" font-size="11" font-weight="700" fill="${col}" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${f1(Math.abs(l.P))} kN ${k}</text><line class="lh" data-l="${li}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="14"/>`}
   else if(l.k==="nm"){const p=nd[l.i];if(!p)return;h+=arc(X(p.x),Y(p.y),l.M,col,"a"+k,`${f1(Math.abs(l.M))} kN·m ${k}`)+`<circle class="lh" data-l="${li}" cx="${X(p.x)}" cy="${Y(p.y)}" r="20"/>`}
   else if(l.k==="md"){const m=S.m[l.j];if(!m)return;const a=nd[m.a],b=nd[m.b],t1=Math.min(l.t1,l.t2),t2=Math.max(l.t1,l.t2),[fx,fy,sg]=ldir(l.dir,a,b,(l.w1+l.w2)||l.w1),key=l.j+":"+l.dir+":"+sg,off=stack[key]||0;
    const P0=t=>[X(a.x+(b.x-a.x)*t),Y(a.y+(b.y-a.y)*t)],w=t=>l.t1<=l.t2?l.w1+(l.w2-l.w1)*(t-t1)/((t2-t1)||1):l.w2+(l.w1-l.w2)*(t-t1)/((t2-t1)||1);
@@ -491,7 +494,7 @@ $("zi").onclick=()=>zoom(1.25);$("zo").onclick=()=>zoom(.8);$("zf").onclick=()=>
 $("res").onclick=e=>{const t=e.target.closest("[data-s],[data-n]");if(!t)return;if(t.dataset.s)sel("m",+t.dataset.s);else if(t.dataset.n)sel("n",+t.dataset.n)};
 $("ct").onclick=e=>{const t=e.target.closest("[data-c]");if(!t)return;S.combo=+t.dataset.c;$("cmb").value=S.combo;upd()};
 $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd()};
-["E","A","I"].forEach(i=>$(i).oninput=upd);["sd","sr","stc","ex"].forEach(i=>$(i).oninput=render);$("pre").onchange=()=>load($("pre").value);
+["E","A","I"].forEach(i=>$(i).oninput=upd);["sd","sr","stc","ex"].forEach(i=>$(i).oninput=render);$("tcb").onclick=()=>{$("stc").checked=!$("stc").checked;$("tcb").classList.toggle("on",$("stc").checked);render()};$("stc").addEventListener("input",()=>$("tcb").classList.toggle("on",$("stc").checked));$("pre").onchange=()=>load($("pre").value);
 /* ---------- canvas mouse ---------- */
 (function(){const sv=$("cv");let d=null;const HR=matchMedia("(pointer:coarse)").matches?22:12;
  const pt=e=>{const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse())};
