@@ -90,7 +90,7 @@ code{font:12px var(--mono);background:var(--hover);padding:1px 5px;border-radius
 <header class="hd">
 <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 19h18M6 19V9l6-4 6 4v10" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M6 9l12 10M18 9L6 19" stroke="#fff" stroke-width="1.2" opacity=".7"/></svg></span>
 <div><b>Structural Analysis Lab</b><a href="https://ymohammed1254.github.io/">by Yousuf Mohammed ↗</a></div></div>
-<div class="hc"><label class="ctl">Start from (replaces)<select id="pre"></select></label><label class="ctl">Load combination<select id="cmb"></select></label><label class="ctl">Diagram<span class="seg" id="dgs"></span></label><label class="ctl">Truss T / C<span class="seg" id="tcs" title="Show tension / compression on truss members"><button data-tc="1" class="on">On</button><button data-tc="0">Off</button></span></label></div>
+<div class="hc"><label class="ctl">Start from (replaces)<select id="pre"></select></label><label class="ctl">Load combination<select id="cmb"></select></label><label class="ctl">Diagram<span class="seg" id="dgs"></span></label><label class="ctl">Reactions<span class="seg" id="rcs" title="Show support reactions"><button data-tc="1" class="on">On</button><button data-tc="0">Off</button></span></label><label class="ctl">Truss T / C<span class="seg" id="tcs" title="Show tension / compression on truss members"><button data-tc="1" class="on">On</button><button data-tc="0">Off</button></span></label></div>
 </header>
 <main class="body">
 <aside class="pane">
@@ -507,7 +507,7 @@ $("zi").onclick=()=>zoom(1.25);$("zo").onclick=()=>zoom(.8);$("zf").onclick=()=>
 $("res").onclick=e=>{const t=e.target.closest("[data-s],[data-n]");if(!t)return;if(t.dataset.s)sel("m",+t.dataset.s);else if(t.dataset.n)sel("n",+t.dataset.n)};
 $("ct").onclick=e=>{const t=e.target.closest("[data-c]");if(!t)return;S.combo=+t.dataset.c;$("cmb").value=S.combo;upd()};
 $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd()};
-["E","A","I"].forEach(i=>$(i).oninput=upd);["sd","sr","stc","ex"].forEach(i=>$(i).oninput=render);const tcSync=()=>[...$("tcs").children].forEach(b=>b.classList.toggle("on",(b.dataset.tc==="1")===$("stc").checked));$("tcs").onclick=e=>{const b=e.target.closest("button");if(!b)return;$("stc").checked=b.dataset.tc==="1";tcSync();render()};$("stc").addEventListener("input",tcSync);$("pre").onchange=()=>load($("pre").value);
+["E","A","I"].forEach(i=>$(i).oninput=upd);["sd","sr","stc","ex"].forEach(i=>$(i).oninput=render);[["tcs","stc"],["rcs","sr"]].forEach(([g,cb])=>{const sync=()=>[...$(g).children].forEach(b=>b.classList.toggle("on",(b.dataset.tc==="1")===$(cb).checked));$(g).onclick=e=>{const b=e.target.closest("button");if(!b)return;$(cb).checked=b.dataset.tc==="1";sync();render()};$(cb).addEventListener("input",sync)});$("pre").onchange=()=>load($("pre").value);
 /* ---------- canvas mouse ---------- */
 (function(){const sv=$("cv");let d=null;const HR=matchMedia("(pointer:coarse)").matches?22:12;
  const pt=e=>{const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse())};
