@@ -462,7 +462,17 @@ Object.entries(TOOLS).filter(([k])=>k!=="move").forEach(([k,[n,key]])=>{const b=
 $("dgs").innerHTML=[["M","Moment"],["V","Shear"],["N","Axial"],["","Off"]].map(([k,n])=>`<button data-dg="${k}" class="${S.dg===k?"on":""}">${n}</button>`).join("");
 $("dgs").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.dg=b.dataset.dg;[...$("dgs").children].forEach(c=>c.classList.toggle("on",c===b));diag();render()};
 function upd(){S.r=solve();analyze();render();tiles();sumc();resPanel();const sp=$("spark");if(sp&&S.sel&&S.sel.t==="m")sp.innerHTML=spark(S.sel.i)}
-function full(){upd();buildList();popUI()}
+function weld(){let guard=0,again=true;while(again&&guard++<500){again=false;
+ for(let k=0;k<S.m.length&&!again;k++){const m=S.m[k],A=S.n[m.a],B=S.n[m.b];if(!A||!B)continue;const dx=B.x-A.x,dy=B.y-A.y,L2=dx*dx+dy*dy;if(L2<1e-12)continue;const L=Math.sqrt(L2),tol=1e-5*Math.max(1,L);
+  for(let i=0;i<S.n.length;i++){if(i===m.a||i===m.b)continue;const p=S.n[i],t=((p.x-A.x)*dx+(p.y-A.y)*dy)/L2;if(t<=1e-6||t>=1-1e-6)continue;if(Math.abs((p.x-A.x)*dy-(p.y-A.y)*dx)/L>tol)continue;
+   const nk=S.m.length;S.m.push({...m,a:i,b:m.b});m.b=i;const out=[];
+   S.L.forEach(l=>{if(l.j!==k||(l.k!=="mp"&&l.k!=="md"))return out.push(l);
+    if(l.k==="mp"){if(l.t<=t)out.push({...l,t:+(l.t/t).toFixed(6)});else out.push({...l,j:nk,t:+((l.t-t)/(1-t)).toFixed(6)});return}
+    const lo=Math.min(l.t1,l.t2),hi=Math.max(l.t1,l.t2),w1=l.t1<=l.t2?l.w1:l.w2,w2=l.t1<=l.t2?l.w2:l.w1,wt=hi>lo?w1+(w2-w1)*(t-lo)/(hi-lo):w1;
+    if(hi<=t)out.push({...l,t1:+(lo/t).toFixed(6),t2:+(hi/t).toFixed(6),w1,w2});else if(lo>=t)out.push({...l,j:nk,t1:+((lo-t)/(1-t)).toFixed(6),t2:+((hi-t)/(1-t)).toFixed(6),w1,w2});
+    else{out.push({...l,t1:+(lo/t).toFixed(6),t2:1,w1,w2:+wt.toFixed(6)});out.push({...l,j:nk,t1:0,t2:+((hi-t)/(1-t)).toFixed(6),w1:+wt.toFixed(6),w2})}});
+   S.L=out;again=true;break}}}}
+function full(){weld();upd();buildList();popUI()}
 const annLen=a=>Math.hypot(a.b.x-a.a.x,a.b.y-a.a.y),annTxt=a=>a.t||annLen(a).toFixed(2)+" m";
 function annSVG(){let g="";const {sc,ox,oy}=S.G,X=x=>ox+x*sc,Y=y=>oy-y*sc,lab=(x,y,t,c)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="12" font-weight="700" fill="${c}" stroke="var(--halo)" stroke-width="3.5" paint-order="stroke">${t}</text>`,C="#8a3ffc";
  S.an.forEach(a=>{if(a.k==="dim"){const x1=X(a.a.x),y1=Y(a.a.y),x2=X(a.b.x),y2=Y(a.b.y),dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,nx=-dy/L*6,ny=dx/L*6,ang=Math.atan2(-(a.b.y-a.a.y),a.b.x-a.a.x)*180/Math.PI;let r=ang;if(r>90)r-=180;if(r<-90)r+=180;
