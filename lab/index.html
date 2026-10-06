@@ -619,13 +619,15 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  sv.oncontextmenu=e=>{e.preventDefault();if(S.rMoved){S.rMoved=false;return}if(S.rb){S.rb=null;S.pv=null;render();return}if(d&&!d.rpan&&!d.rbox)return;
   const q=pt(e),hl=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.dataset&&x.dataset.l!==undefined),li=hl?+hl.dataset.l:undefined,i=li===undefined?near(q,HR):-1,k=li===undefined&&i<0?nearM(q,HR):undefined,I=[],H=t=>I.push(["h",t]),SP=()=>I.push(["-"]);
   const W0=W(q),ex=$("ex"),ADD=(t,tool)=>{S.tool=tool;setTool(tool)};
-  if(selSize()){const ns=selNodes(),mm=selMembers(),c=selSize();H(`Selection · ${c} item${c>1?"s":""}`);
+  const ai0=annHit(q),inS=(t,x)=>(S.sel&&S.sel.t===t&&S.sel.i===x)||S.ms[t].has(x),tgt=ai0>=0?"a":li!==undefined&&S.L[li]?["l",li]:i>=0?["n",i]:k!==undefined?["m",k]:null,useSel=!!selSize()&&(!tgt||(msCount()>0&&tgt!=="a"&&inS(tgt[0],tgt[1])));
+  if(useSel){const ns=selNodes(),mm=selMembers(),c=selSize();H(msCount()?`Selection · ${c} item${c>1?"s":""}`:S.sel.t==="l"?`Load ${S.sel.i}`:S.sel.t==="n"?`Node N${S.sel.i}`:`Member M${S.sel.i}`);
    I.push([`Delete selected`,delSel,"Del",1]);if(ns.length)I.push(["Duplicate",dupSel,"Ctrl+D"]);
    if(mm.length)I.push(["Make frame (rigid)",()=>typeSel("f")],["Make truss (pinned ends)",()=>typeSel("t")]);
    if(ns.length){I.push(["Remove supports",()=>supSel("")]);Object.entries(SUPS).forEach(([key,v])=>I.push(["Support: "+v[1],()=>supSel(key)]))}
    if(ns.length)I.push(["Zoom to selection",()=>{fit(ns.map(i=>S.n[i]));render()}]);
-   const sl=selLoads();if(sl.length){SP();H(`Loads in selection · ${sl.length}`);loadItems(sl,e).forEach(x=>I.push(x))}
+   const sl=selLoads();if(sl.length){if(msCount()||S.sel.t!=="l"){SP();H(`Loads in selection · ${sl.length}`)}loadItems(sl,e).forEach(x=>I.push(x))}
    I.push(["Clear selection",()=>{clrMS();sel(null);msHint()},"Esc"]);SP()}
+  if(!useSel){
   const ai=annHit(q);if(ai>=0){const a=S.an[ai];H(a.k==="dim"?"Dimension":"Note");I.push([a.k==="dim"?"Rename…":"Edit text…",()=>{iedOpen(e,a.k==="dim"?"Label":"Note",a.t||"",v=>{hist();if(a.k==="dim")a.t=v.trim();else if(v.trim())a.t=v.trim();render()},"empty")}]);I.push(["Delete annotation",()=>{hist();S.an.splice(ai,1);render()},"",1])}
   else if(li!==undefined&&S.L[li]){H("Load");I.push(["Select",()=>sel("l",li)]);loadItems([li],e).forEach(x=>I.push(x));SP();I.push(["Delete load",()=>delItem({t:"l",i:li}),"Del",1])}
   else if(i>=0){H("Node N"+i);I.push(["Select",()=>sel("n",i)]);
@@ -636,7 +638,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
    I.push([m.t==="f"?"Make truss (pinned ends)":"Make frame (rigid)",()=>{hist();m.t=m.t==="f"?"t":"f";full()}]);
    I.push(["Zoom to member",()=>{fit([S.n[m.a],S.n[m.b]]);render()}]);
    I.push(["Delete member",()=>delItem({t:"m",i:k}),"Del",1])}
-  else{H("Canvas");I.push(["Add node here",()=>{hist();const[x,y]=snap(q);S.n.push({x,y,sup:""});S.flash={t:"n",i:S.n.length-1};full()}]);I.push(["Add note here…",()=>{const[x,y]=snap(q);iedOpen(e,"Note","",v=>{hist();S.an.push({k:"note",p:{x,y},t:v.trim()});render()},true)}]);}
+  else{H("Canvas");I.push(["Add node here",()=>{hist();const[x,y]=snap(q);S.n.push({x,y,sup:""});S.flash={t:"n",i:S.n.length-1};full()}]);I.push(["Add note here…",()=>{const[x,y]=snap(q);iedOpen(e,"Note","",v=>{hist();S.an.push({k:"note",p:{x,y},t:v.trim()});render()},true)}]);}}
   if(S.an.length)I.push(["Clear all annotations",()=>{hist();S.an=[];S.mp=null;render()},"",1]);
   SP();H("View");
   I.push(["Zoom in",()=>zoom(1.25,q.x,q.y),"+"]);I.push(["Zoom out",()=>zoom(.8,q.x,q.y),"−"]);I.push(["Fit to structure",()=>{fit();render()},"F"]);I.push(["Reset zoom to 100%",()=>{const G=S.G,f=(G.sc0||50)/G.sc;zoom(f,q.x,q.y)}]);
