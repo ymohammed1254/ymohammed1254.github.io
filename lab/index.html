@@ -274,10 +274,12 @@ function render(){
    const[ax1,ay1]=P0(t1),[ax2,ay2]=P0(t2),o1=off+6,o2=off+mh+6;h+=`<polygon class="lh" data-l="${li}" points="${ax1-fx*o1},${ay1-fy*o1} ${ax2-fx*o1},${ay2-fy*o1} ${ax2-fx*o2},${ay2-fy*o2} ${ax1-fx*o2},${ay1-fy*o2}"/>`;
    stack[key]=off+mh+18}})();if(S.placing===li)h=h.slice(0,h0)+`<g opacity=".45">`+h.slice(h0)+`</g>`});
  if(ok&&$("sr").checked){const env=S.combo==="ENV",fs=env?ULS.map(c=>c[1]):[curF()],rng=d=>{if(r.R[0][d]===undefined)return undefined;const v=fs.map(f=>cmbR(r,f,d)),hi=Math.max(...v),lo=Math.min(...v);let gi=0;v.forEach((x,j)=>{if(Math.abs(x)>Math.abs(v[gi]))gi=j});return{hi,lo,g:v[gi],gc:env?ULS[gi][0]:""}},lab=(n,o)=>`${n} ${f1(o.g)}`,big=o=>o&&(Math.abs(o.hi)>.05||Math.abs(o.lo)>.05);
- nd.forEach((p,i)=>{if(!p.sup)return;const x=X(p.x),y=Y(p.y),RX=rng(3*i),RY=rng(3*i+1),RM=rng(3*i+2),t=[];
-  if(big(RY)){const ry=RY.g;h+=ry>0?ar(x,y+76,x,y+40,"R",2.4):ar(x,y+40,x,y+76,"R",2.4);t.push(lab("Ry",RY))}
-  if(big(RX)){const rx=RX.g;h+=rx>0?ar(x-70,y+52,x-32,y+52,"R",2.4):ar(x-32,y+52,x-70,y+52,"R",2.4);t.push(lab("Rx",RX))}
-  if(big(RM))t.push(lab("M",RM));t.forEach((s,j)=>h+=`<text x="${x+10}" y="${y+56+j*13}" font-size="11" font-weight="700" fill="#2e7d4f" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${s}</text>`)})}
+ const RC="#2e7d4f",rt=(x,y,s,anc="start")=>`<text x="${x}" y="${y}" text-anchor="${anc}" font-size="11" font-weight="700" fill="${RC}" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${s}</text>`,nz=o=>o&&Math.abs(o.g)>=.05;
+ nd.forEach((p,i)=>{if(!p.sup)return;const x=X(p.x),y=Y(p.y),RX=rng(3*i),RY=rng(3*i+1),RM=rng(3*i+2);
+  if(nz(RY)){const v=RY.g,a=y+38,b=y+74;h+=(v>0?ar(x,b,x,a,"R",2.4):ar(x,a,x,b,"R",2.4))+rt(x+8,y+60,`Ry ${f1(Math.abs(v))}`)}
+  if(nz(RX)){const v=RX.g;h+=(v>0?ar(x-64,y,x-16,y,"R",2.4)+rt(x-40,y-7,`Rx ${f1(Math.abs(v))}`,"middle"):ar(x+64,y,x+16,y,"R",2.4)+rt(x+40,y-7,`Rx ${f1(Math.abs(v))}`,"middle"))}
+  if(nz(RM)){const v=RM.g,R=30,right=nz(RX)&&RX.g>0,c=right?0:180,P=d=>[x+R*Math.cos(d*Math.PI/180),y-R*Math.sin(d*Math.PI/180)],[ax,ay]=P(v>0?c-65:c+65),[bx,by]=P(v>0?c+65:c-65);
+   h+=`<path d="M${ax.toFixed(1)},${ay.toFixed(1)} A${R},${R} 0 0 ${v>0?0:1} ${bx.toFixed(1)},${by.toFixed(1)}" fill="none" stroke="${CC.R}" stroke-width="2.4" marker-end="url(#aR)"/>`+rt(right?x+R+6:x-R-6,y-R+2,`M ${f1(Math.abs(v))}`,right?"start":"end")}})}
  if(S.pv)h+=`<line x1="${X(nd[S.pv.i].x)}" y1="${Y(nd[S.pv.i].y)}" x2="${S.pv.x}" y2="${S.pv.y}" stroke="var(--member)" stroke-width="4.2" stroke-linecap="round" opacity=".32"/><circle cx="${S.pv.x}" cy="${S.pv.y}" r="6" fill="var(--halo)" stroke="var(--member)" stroke-width="2" opacity=".5"/>`;
  const sl=S.sel;if(sl&&sl.t==="m"&&S.m[sl.i]){const m=S.m[sl.i],a=nd[m.a],b=nd[m.b];h+=`<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#2d70b3" stroke-width="12" stroke-opacity=".28" stroke-linecap="round" pointer-events="none"/>`}
  if(ok&&$("stc")&&$("stc").checked&&r&&r.el)r.el.forEach(e=>{if(!e.tr)return;const a=nd[e.m.a],b=nd[e.m.b];if(!a||!b)return;const tc=tcText(e),x1=X(a.x),y1=Y(a.y),x2=X(b.x),y2=Y(b.y),mx=(x1+x2)/2,my=(y1+y2)/2;let ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI;if(ang>90)ang-=180;if(ang<-90)ang+=180;
