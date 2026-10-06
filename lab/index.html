@@ -617,9 +617,8 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  sv.onpointerleave=()=>{const ov=$("ov");if(ov&&!d)ov.innerHTML="";$("xy").textContent=""};
  sv.addEventListener("wheel",e=>{e.preventDefault();const q=pt(e),px=e.deltaMode===1?16:e.deltaMode===2?S.H:1,dx=e.deltaX*px,dy=e.deltaY*px;
   if(e.ctrlKey||e.metaKey){zoom(Math.exp(-Math.max(-60,Math.min(60,dy))*.01),q.x,q.y);return}
-  const pad=e.deltaMode===0&&(dx!==0||Math.abs(dy)<50||!Number.isInteger(dy));
-  if(pad||e.shiftKey){if(e.shiftKey&&!dx){S.G.ox-=dy}else{S.G.ox-=dx;S.G.oy-=dy}render();return}
-  zoom(dy<0?1.12:.89,q.x,q.y)},{passive:false});
+  if(Math.abs(dx)>Math.abs(dy)){S.G.ox-=dx;render();return}
+  if(dy)zoom(Math.exp(-Math.max(-120,Math.min(120,dy))*.0012),q.x,q.y)},{passive:false});
 })();
 const KEYS={d:"measure",t:"note",v:"move",n:"node",m:"member",s:"support",p:"load",w:"udl",o:"moment",e:"erase"};
 addEventListener("keyup",e=>{if(e.key===" ")S.space=false});
