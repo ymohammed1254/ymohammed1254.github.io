@@ -239,7 +239,7 @@ function render(){
  if(S.cfg.nums)for(let i=Math.floor(-ox/sc/maj);X(i*maj)<=Wd;i++)if(i)h+=`<text x="${X(i*maj)}" y="${ly}" text-anchor="middle" font-size="11" fill="var(--lbl)" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${fm(i*maj)}</text>`;
  if(S.cfg.nums)for(let i=Math.floor((oy-Ht)/sc/maj);Y(i*maj)>=0;i++)if(i)h+=`<text x="${lx}" y="${Y(i*maj)+4}" text-anchor="end" font-size="11" fill="var(--lbl)" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${fm(i*maj)}</text>`;
  h+=`<text x="${Wd-8}" y="${Math.min(ax-6,Ht-20)}" text-anchor="end" font-size="11" fill="var(--mut)" font-style="italic">x (m)</text>`;
- if(ok&&S.dc){const{out,mx}=S.dc,k=52/mx,sg=S.dg==="M"?-1:1,col=S.dg==="M"?"var(--mcol)":S.dg==="V"?"#2d70b3":"#388c46",env=S.combo==="ENV";
+ if(ok&&S.dc){const{out,mx}=S.dc,k=52/mx*Math.min(sc/(S.G.sc0||sc),3),sg=S.dg==="M"?-1:1,col=S.dg==="M"?"var(--mcol)":S.dg==="V"?"#2d70b3":"#388c46",env=S.combo==="ENV";
   r.el.forEach((e,ei)=>{const a=nd[e.m.a],b=nd[e.m.b],P=j=>e.xs.map((x,i)=>{const o=sg*out[ei][i][j]*k/sc;return`${X(a.x+e.c*x-e.s*o).toFixed(1)},${Y(a.y+e.s*x+e.c*o).toFixed(1)}`}).join(" ");
    (env?[0,1]:[0]).forEach(j=>h+=`<polygon points="${X(a.x)},${Y(a.y)} ${P(j)} ${X(b.x)},${Y(b.y)}" fill="${col}" fill-opacity="${env?.1:.15}" stroke="${col}" stroke-width="1.4"/>`);
    (env?[0,1]:[0]).forEach(j=>{let bi=0;out[ei].forEach((v,i)=>{if(Math.abs(v[j])>Math.abs(out[ei][bi][j]))bi=i});const v=out[ei][bi][j];if(Math.abs(v)<.04*mx)return;
