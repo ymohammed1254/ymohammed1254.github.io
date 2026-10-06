@@ -276,7 +276,8 @@ function render(){
  if(ok&&$("sr").checked){const env=S.combo==="ENV",fs=env?ULS.map(c=>c[1]):[curF()],rng=d=>{if(r.R[0][d]===undefined)return undefined;const v=fs.map(f=>cmbR(r,f,d)),hi=Math.max(...v),lo=Math.min(...v);let gi=0;v.forEach((x,j)=>{if(Math.abs(x)>Math.abs(v[gi]))gi=j});return{hi,lo,g:v[gi],gc:env?ULS[gi][0]:""}},lab=(n,o)=>`${n} ${f1(o.g)}`,big=o=>o&&(Math.abs(o.hi)>.05||Math.abs(o.lo)>.05);
  const RC="#2e7d4f",rt=(x,y,s,anc="start")=>`<text x="${x}" y="${y}" text-anchor="${anc}" font-size="11" font-weight="700" fill="${RC}" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${s}</text>`,nz=o=>o&&Math.abs(o.g)>=.05;
  nd.forEach((p,i)=>{if(!p.sup)return;const x=X(p.x),y=Y(p.y),RX=rng(3*i),RY=rng(3*i+1),RM=rng(3*i+2);
-  if(nz(RY)){const v=RY.g,a=y+38,b=y+74;h+=(v>0?ar(x,b,x,a,"R",2.4):ar(x,a,x,b,"R",2.4))+rt(x+8,y+60,`Ry ${f1(Math.abs(v))}`)}
+  if(nz(RY)){const v=RY.g,rot=supRot(p,i),ms=S.m.filter(m=>m.a===i||m.b===i).map(m=>S.n[m.a===i?m.b:m.a]).filter(Boolean),below=ms.length&&ms.every(o=>o.y<p.y-1e-9),side=rot===180||(below&&rot===0)?-1:1,ext=side>0&&Math.abs(rot)!==90?{pin:28,roller:33,rollerY:33,fixed:11,slider:27}[p.sup]||28:8,n1=y+side*(ext+6),n2=y+side*(ext+42),lo=Math.max(n1,n2),hi=Math.min(n1,n2);
+   h+=(v>0?ar(x,lo,x,hi,"R",2.4):ar(x,hi,x,lo,"R",2.4))+rt(x+8,(lo+hi)/2+4,`Ry ${f1(Math.abs(v))}`)}
   if(nz(RX)){const v=RX.g;h+=(v>0?ar(x-64,y,x-16,y,"R",2.4)+rt(x-40,y-7,`Rx ${f1(Math.abs(v))}`,"middle"):ar(x+64,y,x+16,y,"R",2.4)+rt(x+40,y-7,`Rx ${f1(Math.abs(v))}`,"middle"))}
   if(nz(RM)){const v=RM.g,R=30,right=nz(RX)&&RX.g>0,c=right?0:180,P=d=>[x+R*Math.cos(d*Math.PI/180),y-R*Math.sin(d*Math.PI/180)],[ax,ay]=P(v>0?c-65:c+65),[bx,by]=P(v>0?c+65:c-65);
    h+=`<path d="M${ax.toFixed(1)},${ay.toFixed(1)} A${R},${R} 0 0 ${v>0?0:1} ${bx.toFixed(1)},${by.toFixed(1)}" fill="none" stroke="${CC.R}" stroke-width="2.4" marker-end="url(#aR)"/>`+rt(right?x+R+6:x-R-6,y-R+2,`M ${f1(Math.abs(v))}`,right?"start":"end")}})}
