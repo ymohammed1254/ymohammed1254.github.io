@@ -426,6 +426,16 @@ const clrMS=()=>{S.ms={n:new Set(),m:new Set(),l:new Set()}},msCount=()=>S.ms.n.
 const selNodes=()=>{if(msCount())return msNodes();const s=S.sel;if(!s)return[];if(s.t==="n")return S.n[s.i]?[s.i]:[];if(s.t==="m"){const m=S.m[s.i];return m?[m.a,m.b]:[]}return[]};
 const msNodes=()=>{const o=new Set(S.ms.n);S.ms.m.forEach(k=>{const m=S.m[k];if(m){o.add(m.a);o.add(m.b)}});return[...o].filter(i=>S.n[i])};
 function msHint(){const c=msCount();$("ro").textContent=c?`${c} selected · ${S.ms.n.size} nodes, ${S.ms.m.size} members, ${S.ms.l.size} loads · Del deletes · arrows or drag a node to move · Esc clears`:""}
+const selMembers=()=>{if(msCount()){const o=new Set(S.ms.m);S.m.forEach((m,k)=>{if(S.ms.n.has(m.a)&&S.ms.n.has(m.b))o.add(k)});return[...o].filter(k=>S.m[k])}return S.sel&&S.sel.t==="m"&&S.m[S.sel.i]?[S.sel.i]:[]};
+const selSize=()=>msCount()||(S.sel?1:0);
+function delSel(){if(msCount())delMS();else if(S.sel)delItem(S.sel)}
+function dupSel(){const ns=selNodes();if(!ns.length)return;hist();const set=new Set(ns),xs=ns.map(i=>S.n[i].x),w=Math.max(...xs)-Math.min(...xs),dx=+(Math.ceil((w+1)/S.mi)*S.mi).toFixed(6),map={},nm={};
+ ns.forEach(i=>{const p=S.n[i];S.n.push({x:+(p.x+dx).toFixed(6),y:p.y,sup:p.sup});map[i]=S.n.length-1});
+ S.m.slice().forEach((m,k)=>{if(set.has(m.a)&&set.has(m.b)){S.m.push({...m,a:map[m.a],b:map[m.b]});nm[k]=S.m.length-1}});
+ S.L.slice().forEach(l=>{if((l.k==="nf"||l.k==="nm")&&map[l.i]!==undefined)S.L.push({...l,i:map[l.i]});else if((l.k==="mp"||l.k==="md")&&nm[l.j]!==undefined)S.L.push({...l,j:nm[l.j]})});
+ clrMS();S.sel=null;Object.values(map).forEach(i=>S.ms.n.add(i));Object.values(nm).forEach(k=>S.ms.m.add(k));full();msHint()}
+function supSel(v){const ns=selNodes();if(!ns.length)return;hist();ns.forEach(i=>S.n[i].sup=v);full()}
+function typeSel(t){const ms=selMembers();if(!ms.length)return;hist();ms.forEach(k=>S.m[k].t=t);full()}
 function delMS(){hist();[...S.ms.l].sort((a,b)=>b-a).forEach(i=>S.L.splice(i,1));[...S.ms.m].sort((a,b)=>b-a).forEach(k=>{if(S.m[k])delMember(k)});[...S.ms.n].sort((a,b)=>b-a).forEach(i=>{if(S.n[i])delNode(i)});clrMS();S.sel=null;full();msHint()}
 function loadAnchor(l){if(l.k==="nf"||l.k==="nm"){const n=S.n[l.i];return n?[n.x,n.y]:null}const m=S.m[l.j];if(!m)return null;const a=S.n[m.a],b=S.n[m.b],t=l.k==="mp"?l.t:(l.t1+l.t2)/2;return[a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t]}
 const clip=(x1,y1,x2,y2,a,b,c,dd)=>{let t0=0,t1=1;const dx=x2-x1,dy=y2-y1,P=[-dx,dx,-dy,dy],Q=[x1-a,c-x1,y1-b,dd-y1];for(let i=0;i<4;i++){if(P[i]===0){if(Q[i]<0)return false}else{const r=Q[i]/P[i];if(P[i]<0){if(r>t1)return false;if(r>t0)t0=r}else{if(r<t0)return false;if(r<t1)t1=r}}}return true};
@@ -578,6 +588,12 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  sv.oncontextmenu=e=>{e.preventDefault();if(S.rMoved){S.rMoved=false;return}if(S.rb){S.rb=null;S.pv=null;render();return}if(d&&!d.rpan&&!d.rbox)return;
   const q=pt(e),tg=e.target.dataset||{},li=tg.l!==undefined?+tg.l:undefined,i=li===undefined?near(q,HR):-1,k=li===undefined&&i<0?nearM(q,HR):undefined,I=[],H=t=>I.push(["h",t]),SP=()=>I.push(["-"]);
   const W0=W(q),ex=$("ex"),ADD=(t,tool)=>{S.tool=tool;setTool(tool)};
+  if(selSize()){const ns=selNodes(),mm=selMembers(),c=selSize();H(`Selection · ${c} item${c>1?"s":""}`);
+   I.push([`Delete selected`,delSel,"Del",1]);if(ns.length)I.push(["Duplicate",dupSel,"Ctrl+D"]);
+   if(mm.length)I.push(["Make frame (rigid)",()=>typeSel("f")],["Make truss (pinned ends)",()=>typeSel("t")]);
+   if(ns.length){I.push(["Remove supports",()=>supSel("")]);Object.entries(SUPS).forEach(([key,v])=>I.push(["Support: "+v[1],()=>supSel(key)]))}
+   if(ns.length)I.push(["Zoom to selection",()=>{fit(ns.map(i=>S.n[i]));render()}]);
+   I.push(["Clear selection",()=>{clrMS();sel(null);msHint()},"Esc"]);SP()}
   const ai=annHit(q);if(ai>=0){const a=S.an[ai];H(a.k==="dim"?"Dimension":"Note");I.push([a.k==="dim"?"Rename…":"Edit text…",()=>{iedOpen(e,a.k==="dim"?"Label":"Note",a.t||"",v=>{hist();if(a.k==="dim")a.t=v.trim();else if(v.trim())a.t=v.trim();render()},"empty")}]);I.push(["Delete annotation",()=>{hist();S.an.splice(ai,1);render()},"",1])}
   else if(li!==undefined&&S.L[li]){H("Load");I.push(["Select",()=>sel("l",li)]);I.push(["Delete load",()=>delItem({t:"l",i:li}),"Del",1])}
   else if(i>=0){H("Node N"+i);I.push(["Select",()=>sel("n",i)]);
@@ -638,6 +654,7 @@ addEventListener("keydown",e=>{if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.t
  if((e.ctrlKey||e.metaKey)&&(k.toLowerCase()==="y"||(k.toLowerCase()==="z"&&e.shiftKey))){e.preventDefault();redo();return}if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==="z"){e.preventDefault();undo();return}
  if(k==="Escape"){if(S.mp){S.mp=null;render();return}if(S.rb){S.rb=null;S.pv=null;render();return}S.pv=null;sel(null);msHint();setTool("move");return}
  if((k==="Delete"||k==="Backspace")&&msCount()){e.preventDefault();delMS();return}
+ if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==="d"&&selSize()){e.preventDefault();dupSel();return}
  if(k.startsWith("Arrow")&&msCount()&&S.tool==="move"){e.preventDefault();hist();const st=e.shiftKey?1:S.mi,dx=k==="ArrowLeft"?-st:k==="ArrowRight"?st:0,dy=k==="ArrowUp"?st:k==="ArrowDown"?-st:0;msNodes().forEach(i=>{const p=S.n[i];p.x=+(p.x+dx).toFixed(6);p.y=+(p.y+dy).toFixed(6)});full();msHint();return}
  const L0=S.sel&&S.sel.t==="l"?S.L[S.sel.i]:null,AK={ArrowDown:[-90,"down"],ArrowUp:[90,"up"],ArrowLeft:[180,"left"],ArrowRight:[0,"right"]}[k];
  if(L0&&AK){e.preventDefault();hist();if(L0.k==="nf"||L0.k==="mp"){L0.ang=AK[0];S.def.ang=AK[0]}else if(L0.k==="md"){const[dir,sg]=UD[AK[1]];L0.dir=dir;L0.w1=sg*Math.abs(L0.w1);L0.w2=sg*Math.abs(L0.w2);S.def.ud=AK[1]}else L0.M=(k==="ArrowLeft"||k==="ArrowUp"?1:-1)*Math.abs(L0.M);full();return}
