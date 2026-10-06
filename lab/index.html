@@ -215,9 +215,12 @@ function diag(){const r=S.r;S.dc=null;if(!S.sum||!S.dg)return;const fs=S.combo==
 /* ---------- render ---------- */
 const MK=Object.entries(CC).map(([k,c])=>`<marker id="a${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="${c}"/></marker>`).join("");
 const f1=v=>(Math.abs(v)<.05?0:v).toFixed(1),fm=v=>String(+v.toFixed(6));
-function supG(p,i,x,y){let rot=0;const om=S.m.find(m=>m.a===i||m.b===i),o=om?S.n[om.a===i?om.b:om.a]:null;
+function supRot(p,i){let rot=0;const om=S.m.find(m=>m.a===i||m.b===i),o=om?S.n[om.a===i?om.b:om.a]:null;
  if(p.sup==="fixed"&&o){const dx=o.x-p.x,dy=o.y-p.y;rot=Math.abs(dx)>Math.abs(dy)?(dx>0?90:-90):(dy>=0?0:180)}
- if(p.sup==="rollerY")rot=o&&o.x<p.x?-90:90;
+ if(p.sup==="rollerY")rot=o&&o.x<p.x?-90:90;return rot}
+const supAt=(q,i)=>{if(i>=0&&S.n[i]&&Math.hypot(q.x-(S.G.ox+S.n[i].x*S.G.sc),q.y-(S.G.oy-S.n[i].y*S.G.sc))<=7)return-1;const si=supHit(q);return si>=0&&(i<0||i===si)?si:-1};
+function supHit(q){const{sc,ox,oy}=S.G;for(let i=S.n.length-1;i>=0;i--){const p=S.n[i];if(!p.sup)continue;const r=-supRot(p,i)*Math.PI/180,dx=q.x-(ox+p.x*sc),dy=q.y-(oy-p.y*sc),lx=dx*Math.cos(r)-dy*Math.sin(r),ly=dx*Math.sin(r)+dy*Math.cos(r);if(lx>=-20&&lx<=20&&ly>=1&&ly<=33)return i}return-1}
+function supG(p,i,x,y){const rot=supRot(p,i);
  const ht=y0=>{let s="";for(let x=-15;x<=15;x+=6)s+=`<line x1="${x+3}" y1="${y0}" x2="${x-3}" y2="${y0+7}"/>`;return s};
  const rl=`<polygon points="0,5 -10,16 10,16"/><circle cx="-6" cy="20" r="3.5"/><circle cx="6" cy="20" r="3.5"/><line x1="-17" y1="24.5" x2="17" y2="24.5" stroke-width="2"/>${ht(25)}`;
  const body={pin:`<polygon points="0,5 -11,20 11,20"/><line x1="-17" y1="21" x2="17" y2="21" stroke-width="2"/>${ht(21)}`,roller:rl,rollerY:rl,fixed:`<line x1="-18" y1="2" x2="18" y2="2" stroke-width="3.2"/>${ht(3)}`,slider:`<rect x="-12" y="1" width="24" height="10" rx="1.5"/><circle cx="-6" cy="15" r="3.5"/><circle cx="6" cy="15" r="3.5"/><line x1="-17" y1="19.5" x2="17" y2="19.5" stroke-width="2"/>${ht(20)}`}[p.sup];
@@ -490,6 +493,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  function hover(q,e){if(S.tool==="pan"){sv.style.cursor="grab";$("ov").innerHTML="";const[gx,gy]=snap(q);$("xy").textContent=`(${fm(gx)}, ${fm(gy)})`;return}if(S.tool==="measure"||S.tool==="note"){annPrev(q,e);return}const[li,i,k]=pick(q,e),r=S.r,gh=ghost(q,e,i,k);if(gh!==null){$("xy").textContent=`(${fm(snap(q)[0])}, ${fm(snap(q)[1])})`;sv.style.cursor="crosshair";$("ov").innerHTML=gh;return}const ov=$("ov"),[gx,gy]=snap(q);let o="";
   $("xy").textContent=`(${fm(gx)}, ${fm(gy)})`;const sm=S.sum,env=S.combo==="ENV";
   sv.style.cursor=S.tool==="move"?(i>=0||li!==undefined?"grab":k!==undefined?"pointer":"grab"):"crosshair";
+  if(S.tool==="move"&&li===undefined){const si=supAt(q,i);if(si>=0){const p=S.n[si];ov.innerHTML=pill(q.x,q.y,[`${SUPS[p.sup][1]} support on N${si}`,"drag onto another node to move it"]);sv.style.cursor="grab";return}}
   if(li!==undefined){const l=S.L[li];o=pill(q.x,q.y,[`${{nf:"Nodal force",nm:"Nodal moment",mp:"Point load",md:"Distributed load"}[l.k]} · case ${l.c}`,l.k==="md"?`${l.w1} → ${l.w2} kN/m`:l.k==="nm"?`${l.M} kN·m`:`${l.P} kN at ${l.ang}°`].concat(S.tool==="move"&&l.k==="mp"?["drag to slide along the member"]:S.tool==="erase"?["click to delete"]:[]))}
   else if(i>=0){const p=S.n[i],L=[`Node ${i}   (${fm(p.x)}, ${fm(p.y)})`];if(p.sup)L.push(SUPS[p.sup][1]+" support");
    if(sm){const u=sm.uD;L.push(`Δx ${(u[3*i]*1000).toFixed(2)} mm · Δy ${(u[3*i+1]*1000).toFixed(2)} mm`,`θ ${(u[3*i+2]*1000).toFixed(3)} mrad · ${env?"D + L":ALL[S.combo][0]}`)}
@@ -510,6 +514,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
   d={i,k,li,q0:q,cx:e.clientX,cy:e.clientY,mv:false,h:false,ox:S.G.ox,oy:S.G.oy,nl:null,n0:n?{x:n.x,y:n.y}:null,pan:!!S.space||e.button===1||(e.button===2&&S.tool!=="move")||S.tool==="pan",rpan:e.button===2&&S.tool!=="move"};
   sv.setPointerCapture(e.pointerId);if(d.pan)return;
   if(t==="move"&&e.button===2){d.box={x0:q.x,y0:q.y};d.rbox=true;return}
+  if(t==="move"&&!e.shiftKey&&li===undefined){const si=supAt(q,i);if(si>=0){d.sup=si;sel("n",si);return}}
   if(t==="move"){if(e.shiftKey&&(li!==undefined||i>=0||k!==undefined)){if(S.sel){S.ms[S.sel.t].add(S.sel.i);S.sel=null}const key=li!==undefined?"l":i>=0?"n":"m",idx=li!==undefined?li:i>=0?i:k;S.ms[key].has(idx)?S.ms[key].delete(idx):S.ms[key].add(idx);d.skip=true;buildList();render();msHint();return}
    if(i>=0&&msCount()&&msNodes().includes(i))d.grp=msNodes().map(j=>[j,S.n[j].x,S.n[j].y]);else if(li!==undefined)sel("l",li);else if(i>=0)sel("n",i);else if(k!==undefined)sel("m",k);else if(e.shiftKey)d.box={x0:q.x,y0:q.y};else d.pan=true}
   else if(t==="load"&&(i>=0||k!==undefined)){hist();d.h=true;S.L.push(i>=0?{k:"nf",i,P:S.def.P,ang:defAng(),c:S.lc}:{k:"mp",j:k,t:projE(k,q,e),P:S.def.P,ang:defAng(k),c:S.lc});d.nl=S.L.length-1;S.placing=d.nl;upd()}
@@ -518,6 +523,9 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  sv.onpointermove=e=>{const q=pt(e);if(!d){S.lastQ=q;if(S.cmd)return;if(S.tool==="member"&&S.rb&&S.n[S.rb.i]){const en=memEnd(q,e,S.rb.i),a=S.n[S.rb.i];S.pv={i:S.rb.i,x:SX(en.x),y:SY(en.y)};render();tip(q,[`L = ${Math.hypot(en.x-a.x,en.y-a.y).toFixed(2)} m ∠ ${(Math.atan2(en.y-a.y,en.x-a.x)*180/Math.PI).toFixed(1)}°`,"click to place · type a length · Esc or right-click to stop"]);return}hover(q,e);S.hk=pick(q,e);return}
   if(d.skip)return;
   if(Math.hypot(e.clientX-d.cx,e.clientY-d.cy)>4)d.mv=true;if(!d.mv)return;
+  if(d.sup!==undefined){const p=S.n[d.sup],j=near(q,30);sv.style.cursor="grabbing";let o=`<g opacity=".25">${supG(p,d.sup,SX(p.x),SY(p.y))}</g>`;
+   if(j>=0&&j!==d.sup){const tp=S.n[j];o+=`<circle cx="${SX(tp.x)}" cy="${SY(tp.y)}" r="13" fill="#2d70b3" fill-opacity=".15" stroke="#2d70b3" stroke-width="2"/><g opacity=".75">${supG({...tp,sup:p.sup},j,SX(tp.x),SY(tp.y))}</g>`+pill(SX(tp.x),SY(tp.y),[`Move ${SUPS[p.sup][1].toLowerCase()} to N${j}`+(tp.sup&&tp.sup!==""?` (replaces ${SUPS[tp.sup][1].toLowerCase()})`:"")])}
+   else o+=`<g opacity=".6">${supG(p,d.sup,q.x,q.y)}</g>`+pill(q.x,q.y,["Drop on a node to move the support"]);$("ov").innerHTML=o;return}
   const once=()=>{if(!d.h){hist();d.h=true}},t=S.tool,n=S.n[d.i];
   if(d.box){if(d.rbox){S.rMoved=true;rcmClose()}d.box.x1=q.x;d.box.y1=q.y;const L2R=q.x>=d.box.x0,bx=Math.min(d.box.x0,q.x),by=Math.min(d.box.y0,q.y);$("ov").innerHTML=`<rect x="${bx}" y="${by}" width="${Math.abs(q.x-d.box.x0)}" height="${Math.abs(q.y-d.box.y0)}" fill="${L2R?"rgba(45,112,179,.08)":"rgba(56,140,70,.08)"}" stroke="${L2R?"#2d70b3":"#388c46"}" stroke-width="1.2"${L2R?"":` stroke-dasharray="6 4"`}/>`+pill(q.x,q.y,[L2R?"Window · objects fully inside":"Crossing · objects touching"]);return}
   if(d.pan){if(d.rpan){S.rMoved=true;rcmClose()}S.G.ox=d.ox+(q.x-d.q0.x);S.G.oy=d.oy+(q.y-d.q0.y);sv.style.cursor="grabbing";render();return}
@@ -534,6 +542,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  sv.onpointerup=e=>{if(!d)return;const q=pt(e),n=S.n[d.i],t=S.tool;let ch=!!d.h;sv.style.cursor="";
   if(d.skip){d=null;return}
   if(d.box){const b=d.box,rb=d.rbox;d=null;if(rb&&b.x1===undefined)return;if(b.x1!==undefined&&Math.hypot(b.x1-b.x0,b.y1-b.y0)>4)boxSelect(b,e.shiftKey);else{sel(null);msHint()}hover(q,e);return}
+  if(d.sup!==undefined){const a=d.sup,mv=d.mv;d=null;sv.style.cursor="";if(mv){const j=near(q,30);if(j>=0&&j!==a){hist();S.n[j].sup=S.n[a].sup;S.n[a].sup="";S.flash={t:"s",i:j};S.sel={t:"n",i:j};full()}else render()}hover(q,e);return}
   if(d.grp&&d.mv){d=null;full();msHint();hover(q,e);return}
   if(d.pan){if(!d.mv&&t==="move"&&!S.space)sel(null)}
   else if(!d.mv){
