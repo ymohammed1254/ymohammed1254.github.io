@@ -639,15 +639,15 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
    I.push(["Zoom to member",()=>{fit([S.n[m.a],S.n[m.b]]);render()}]);
    I.push(["Delete member",()=>delItem({t:"m",i:k}),"Del",1])}
   else{H("Canvas");I.push(["Add node here",()=>{hist();const[x,y]=snap(q);S.n.push({x,y,sup:""});S.flash={t:"n",i:S.n.length-1};full()}]);I.push(["Add note here…",()=>{const[x,y]=snap(q);iedOpen(e,"Note","",v=>{hist();S.an.push({k:"note",p:{x,y},t:v.trim()});render()},true)}]);}}
-  if(S.an.length)I.push(["Clear all annotations",()=>{hist();S.an=[];S.mp=null;render()},"",1]);
+  if(!useSel&&!tgt){if(S.an.length)I.push(["Clear all annotations",()=>{hist();S.an=[];S.mp=null;render()},"",1]);
   SP();H("View");
   I.push(["Zoom in",()=>zoom(1.25,q.x,q.y),"+"]);I.push(["Zoom out",()=>zoom(.8,q.x,q.y),"−"]);I.push(["Fit to structure",()=>{fit();render()},"F"]);I.push(["Reset zoom to 100%",()=>{const G=S.G,f=(G.sc0||50)/G.sc;zoom(f,q.x,q.y)}]);
   I.push([($("sd").checked?"Hide":"Show")+" deflected shape",()=>{$("sd").checked=!$("sd").checked;render()}]);
   I.push(["Deformation exaggeration ×2",()=>{ex.value=Math.min(+ex.max,+ex.value*2);render()}]);I.push(["Deformation exaggeration ÷2",()=>{ex.value=Math.max(+ex.min,+ex.value/2);render()}]);I.push(["Reset exaggeration",()=>{ex.value=1;render()}]);
   I.push([(S.cfg.grid?"Hide":"Show")+" grid",()=>{S.cfg.grid=!S.cfg.grid;$("cg").checked=S.cfg.grid;render()}]);
-  SP();I.push(["Undo",undo,"Ctrl+Z"]);I.push(["Redo",redo,"Ctrl+Y"]);
+  SP();I.push(["Undo",undo,"Ctrl+Z"]);I.push(["Redo",redo,"Ctrl+Y"]);}
   showMenu(I,e.clientX,e.clientY)};
- function showMenu(I,cx,cy){rcm.innerHTML="";I.forEach(it=>{if(it[0]==="h"){const x=document.createElement("div");x.className="rh";x.textContent=it[1];rcm.appendChild(x)}else if(it[0]==="-")rcm.appendChild(document.createElement("hr"));else{const b=document.createElement("button");if(it[3])b.className="dg";b.innerHTML=`<span>${it[0]}</span>${it[2]?`<i>${it[2]}</i>`:""}`;b.onclick=()=>{rcmClose();it[1]()};rcm.appendChild(b)}});
+ function showMenu(I,cx,cy){while(I.length&&I[I.length-1][0]==="-")I.pop();while(I.length&&I[0][0]==="-")I.shift();rcm.innerHTML="";I.forEach(it=>{if(it[0]==="h"){const x=document.createElement("div");x.className="rh";x.textContent=it[1];rcm.appendChild(x)}else if(it[0]==="-")rcm.appendChild(document.createElement("hr"));else{const b=document.createElement("button");if(it[3])b.className="dg";b.innerHTML=`<span>${it[0]}</span>${it[2]?`<i>${it[2]}</i>`:""}`;b.onclick=()=>{rcmClose();it[1]()};rcm.appendChild(b)}});
   rcm.hidden=false;const w=rcm.offsetWidth,h=rcm.offsetHeight;rcm.style.left=Math.max(4,Math.min(cx,innerWidth-w-4))+"px";rcm.style.top=Math.max(4,Math.min(cy,innerHeight-h-4))+"px"}
  S.showMenu=showMenu;
  function parsePt(v,base){v=v.trim();let m;const r=x=>+(+x).toFixed(6);
