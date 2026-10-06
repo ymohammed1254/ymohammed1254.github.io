@@ -124,7 +124,7 @@ const ULS=[["1.4D",[1.4,0,0,0]],["1.25D + 1.5L + 1.0S",[1.25,1.5,1,0]],["1.25D +
 const SLS=[["D + L (service)",[1,1,0,0]],["D + S (service)",[1,0,1,0]],["D + W (service)",[1,0,0,1]]];
 const UNF=CN.map((c,i)=>[c+" only (unfactored)",[0,1,2,3].map(j=>j===i?1:0)]),ALL=[...ULS,...SLS,...UNF],DL=ULS.length;
 const SUPS={pin:[[0,1],"Pin"],roller:[[1],"Roller"],rollerY:[[0],"Wall roller"],fixed:[[0,1,2],"Fixed"],slider:[[1,2],"Slider"]};
-const S={n:[],m:[],L:[],sel:null,tool:"move",sup:"pin",lc:"D",def:{P:20,q:10,M:20,t:"f",ang:-90,ud:"down"},G:{sc:50,sc0:50,ox:100,oy:300},h:[],combo:"ENV",dg:"M",pv:null,ph:1,anim:false,mi:1,rd:[],cfg:{grid:true,nums:true,snap:true,labels:true},W:900,H:520,fold:{},ms:{n:new Set(),m:new Set(),l:new Set()},rb:null};
+const S={n:[],m:[],L:[],sel:null,tool:"move",sup:"pin",lc:"D",def:{P:20,q:10,M:20,t:"f",ang:-90,ud:"down"},G:{sc:50,sc0:50,ox:100,oy:300},h:[],combo:"ENV",dg:"M",pv:null,ph:1,anim:false,mi:1,rd:[],cfg:{grid:true,nums:true,snap:true,labels:true},W:900,H:520,fold:{},an:[],mp:null,ms:{n:new Set(),m:new Set(),l:new Set()},rb:null};
 /* ---------- presets ---------- */
 const N=(x,y,sup="")=>({x,y,sup}),B=(a,b,t="f")=>({a,b,t}),ud=(j,c,w,dir="y")=>({k:"md",j,t1:0,t2:1,w1:w,w2:w,dir,c}),mp=(j,c,P,t,ang=-90)=>({k:"mp",j,t,P,ang,c}),nf=(i,c,P,ang=-90)=>({k:"nf",i,P,ang,c});
 const PRE={
@@ -275,7 +275,7 @@ function render(){
  if(!nd.length)h+=`<text x="${Wd/2}" y="${Ht/2-12}" text-anchor="middle" font-family="Georgia,serif" font-size="24" fill="var(--mut)">Blank canvas</text><text x="${Wd/2}" y="${Ht/2+14}" text-anchor="middle" font-size="14" fill="var(--mut)">Press N and click to place nodes, then M and drag between them.</text>`;
  else if(r&&r.bad&&S.m.length)h+=`<text x="${Wd/2}" y="${Ht-90}" text-anchor="middle" font-size="14" font-weight="700" fill="#b3261e">Unstable: mechanism. Add supports or members.</text>`;
  if(S.hl!=null&&S.m[S.hl]){const m=S.m[S.hl],a=nd[m.a],b=nd[m.b];h+=`<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#fa7e19" stroke-width="16" stroke-opacity=".38" stroke-linecap="round" pointer-events="none"/>`}
- h+=`<g id="ov" pointer-events="none"></g>`;$("cv").innerHTML=h;popPos();if(S.ms&&msCount()){let g="";S.ms.m.forEach(k=>{const m=S.m[k];if(!m)return;const a=nd[m.a],b=nd[m.b];g+=`<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#2d70b3" stroke-width="11" stroke-opacity=".28" stroke-linecap="round"/>`});S.ms.n.forEach(i=>{const p=nd[i];if(p)g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="11" fill="none" stroke="#2d70b3" stroke-width="2.5"/>`});$("cv").insertAdjacentHTML("beforeend",`<g pointer-events="none">${g}</g>`);S.ms.l.forEach(i=>document.querySelectorAll(`#cv [data-l="${i}"]`).forEach(el=>{el.style.fill="rgba(45,112,179,.14)";el.style.stroke="rgba(45,112,179,.3)"}))}S.flash=null;
+ h+=`<g id="ov" pointer-events="none"></g>`;$("cv").innerHTML=h;popPos();$("cv").insertAdjacentHTML("beforeend",annSVG());if(S.ms&&msCount()){let g="";S.ms.m.forEach(k=>{const m=S.m[k];if(!m)return;const a=nd[m.a],b=nd[m.b];g+=`<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#2d70b3" stroke-width="11" stroke-opacity=".28" stroke-linecap="round"/>`});S.ms.n.forEach(i=>{const p=nd[i];if(p)g+=`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="11" fill="none" stroke="#2d70b3" stroke-width="2.5"/>`});$("cv").insertAdjacentHTML("beforeend",`<g pointer-events="none">${g}</g>`);S.ms.l.forEach(i=>document.querySelectorAll(`#cv [data-l="${i}"]`).forEach(el=>{el.style.fill="rgba(45,112,179,.14)";el.style.stroke="rgba(45,112,179,.3)"}))}S.flash=null;
  if(sl&&sl.t==="l")document.querySelectorAll(`#cv [data-l="${sl.i}"]`).forEach(e=>{e.style.fill="rgba(200,80,26,.14)";e.style.stroke="rgba(200,80,26,.25)"});
 }
 /* ---------- results ---------- */
@@ -433,8 +433,8 @@ function boxSelect(b,add){const L2R=b.x1>=b.x0,x0=Math.min(b.x0,b.x1),x1=Math.ma
  if(msCount()===1){const t=S.ms.n.size?"n":S.ms.m.size?"m":"l",i=[...S.ms[t]][0];sel(t,i);return}buildList();render();msHint()}
 function addTo(en){let j=en.j;hist();if(j<0){const f=S.n.findIndex(p=>Math.abs(p.x-en.x)<1e-6&&Math.abs(p.y-en.y)<1e-6);if(f>=0)j=f;else{S.n.push({x:en.x,y:en.y,sup:""});j=S.n.length-1}}const a=S.rb.i;if(j!==a&&!S.m.some(m=>(m.a===a&&m.b===j)||(m.a===j&&m.b===a)))S.m.push({a,b:j,t:S.def.t});S.rb={i:j}}
 function sel(t,i,scroll=true){clrMS();S.sel=t?{t,i}:null;buildList();popUI();if(t&&scroll){const r=document.querySelector(`#side [data-sel="${t}:${i}"]`);if(r)r.scrollIntoView({block:"nearest"})}render()}
-const TOOLS={move:["Select","V","Drag a box: left→right selects inside, right→left selects touching · Shift-click adds · drag nodes or point loads · Space+drag pans"],node:["Node","N","Click to add a node, or type x,y / @dx,dy and Enter · Ctrl: no grid snap"],member:["Member","M","Click points to chain members, or drag · type a length, L<angle or @dx,dy and Enter · Esc or right-click ends"],support:["Support","S","Pick a type, then click nodes (click again to remove)"],load:["Point load","P","Arrow keys or buttons set direction · click a member or node · or hover a member and type a distance · +/− resizes"],udl:["UDL","W","Arrow keys or buttons set direction · click or drag along a member · or hover it and type a length or from,to · +/− resizes"],moment:["Moment","O","Click a node · drag up or down to size it · Shift: 5 kN·m steps"],erase:["Erase","E","Click any node, member or load to delete it"]};
-function setTool(k){S.tool=k;S.pv=null;S.rb=null;Object.keys(TOOLS).forEach(t=>$("t_"+t).className=t===k?"on":"");ctx();$("ro").textContent=""}
+const TOOLS={move:["Select","V","Drag a box: left→right selects inside, right→left selects touching · Shift-click adds · drag nodes or point loads · Space+drag pans"],node:["Node","N","Click to add a node, or type x,y / @dx,dy and Enter · Ctrl: no grid snap"],member:["Member","M","Click points to chain members, or drag · type a length, L<angle or @dx,dy and Enter · Esc or right-click ends"],support:["Support","S","Pick a type, then click nodes (click again to remove)"],load:["Point load","P","Arrow keys or buttons set direction · click a member or node · or hover a member and type a distance · +/− resizes"],udl:["UDL","W","Arrow keys or buttons set direction · click or drag along a member · or hover it and type a length or from,to · +/− resizes"],moment:["Moment","O","Click a node · drag up or down to size it · Shift: 5 kN·m steps"],measure:["Dimension","D","Click two points (snaps to nodes) to add a dimension annotation · Shift: horizontal/vertical · Ctrl: no snap · double-click it to rename · Esc cancels"],note:["Note","T","Click anywhere to add a text note · double-click a note to edit it · Erase tool or right-click deletes"],erase:["Erase","E","Click any node, member or load to delete it"]};
+function setTool(k){S.tool=k;S.pv=null;S.mp=null;S.rb=null;Object.keys(TOOLS).forEach(t=>$("t_"+t).className=t===k?"on":"");ctx();$("ro").textContent=""}
 function ctx(){const c=$("ctx"),k=S.tool;let h=`<span>${TOOLS[k][2]}</span>`;
  if(k==="support")h=`<span class="seg">${Object.entries(SUPS).map(([s,v])=>`<button data-sup="${s}" class="${S.sup===s?"on":""}">${v[1]}</button>`).join("")}</span><span>then click nodes</span>`;
  if(k==="load"||k==="udl"||k==="moment"){const key=k==="load"?"P":k==="udl"?"q":"M",u=k==="load"?"kN":k==="udl"?"kN/m":"kN·m";h=`<span>Case</span><span class="seg">${CN.map(c=>`<button data-lc="${c}" class="${c} ${S.lc===c?"on":""}">${c}</button>`).join("")}</span><label>Default ${inp("def:"+key,S.def[key],64)} ${u}</label>${k==="load"?dirSeg():k==="udl"?udSeg():""}<span>${TOOLS[k][2]}</span>`}
@@ -449,6 +449,13 @@ $("dgs").innerHTML=[["M","Moment"],["V","Shear"],["N","Axial"],["","Off"]].map((
 $("dgs").onclick=e=>{const b=e.target.closest("button");if(!b)return;S.dg=b.dataset.dg;[...$("dgs").children].forEach(c=>c.classList.toggle("on",c===b));diag();render()};
 function upd(){S.r=solve();analyze();render();tiles();sumc();resPanel();const sp=$("spark");if(sp&&S.sel&&S.sel.t==="m")sp.innerHTML=spark(S.sel.i)}
 function full(){upd();buildList();popUI()}
+const annLen=a=>Math.hypot(a.b.x-a.a.x,a.b.y-a.a.y),annTxt=a=>a.t||annLen(a).toFixed(2)+" m";
+function annSVG(){let g="";const {sc,ox,oy}=S.G,X=x=>ox+x*sc,Y=y=>oy-y*sc,lab=(x,y,t,c)=>`<text x="${x}" y="${y}" text-anchor="middle" font-size="12" font-weight="700" fill="${c}" stroke="var(--halo)" stroke-width="3.5" paint-order="stroke">${t}</text>`,C="#8a3ffc";
+ S.an.forEach(a=>{if(a.k==="dim"){const x1=X(a.a.x),y1=Y(a.a.y),x2=X(a.b.x),y2=Y(a.b.y),dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,nx=-dy/L*6,ny=dx/L*6,ang=Math.atan2(-(a.b.y-a.a.y),a.b.x-a.a.x)*180/Math.PI;let r=ang;if(r>90)r-=180;if(r<-90)r+=180;
+  g+=`<g pointer-events="none"><line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${C}" stroke-width="1.6"/><line x1="${x1-nx}" y1="${y1-ny}" x2="${x1+nx}" y2="${y1+ny}" stroke="${C}" stroke-width="2"/><line x1="${x2-nx}" y1="${y2-ny}" x2="${x2+nx}" y2="${y2+ny}" stroke="${C}" stroke-width="2"/><circle cx="${x1}" cy="${y1}" r="3" fill="${C}"/><circle cx="${x2}" cy="${y2}" r="3" fill="${C}"/><g transform="translate(${(x1+x2)/2},${(y1+y2)/2}) rotate(${-r}) translate(0,-8)">${lab(0,0,annTxt(a),C)}</g></g>`}
+  else g+=`<g pointer-events="none"><rect x="${X(a.p.x)-4}" y="${Y(a.p.y)-4}" width="8" height="8" transform="rotate(45 ${X(a.p.x)} ${Y(a.p.y)})" fill="${C}"/>${lab(X(a.p.x),Y(a.p.y)-12,a.t,C)}</g>`});
+ if(S.mp)g+=`<circle cx="${X(S.mp.x)}" cy="${Y(S.mp.y)}" r="5" fill="${C}" pointer-events="none"/>`;return g}
+function annHit(q,r=10){const {sc,ox,oy}=S.G;for(let i=S.an.length-1;i>=0;i--){const a=S.an[i];if(a.k==="note"){const x=ox+a.p.x*sc,y=oy-a.p.y*sc,w=a.t.length*3.6+8;if(q.x>x-w&&q.x<x+w&&q.y>y-26&&q.y<y+8)return i}else{const x1=ox+a.a.x*sc,y1=oy-a.a.y*sc,x2=ox+a.b.x*sc,y2=oy-a.b.y*sc,dx=x2-x1,dy=y2-y1,L2=dx*dx+dy*dy||1,t=Math.max(0,Math.min(1,((q.x-x1)*dx+(q.y-y1)*dy)/L2));if(Math.hypot(q.x-x1-dx*t,q.y-y1-dy*t)<r)return i}}return-1}
 function zoom(f,cx=S.W/2,cy=S.H/2){const G=S.G;G.ox=cx-(cx-G.ox)*f;G.oy=cy-(cy-G.oy)*f;G.sc*=f;render()}
 $("zi").onclick=()=>zoom(1.25);$("zo").onclick=()=>zoom(.8);$("zf").onclick=()=>{fit();render()};
 $("res").onclick=e=>{const t=e.target.closest("[data-s],[data-n]");if(!t)return;if(t.dataset.s)sel("m",+t.dataset.s);else if(t.dataset.n)sel("n",+t.dataset.n)};
@@ -480,7 +487,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
   if(T==="node"&&i<0){const[gx,gy]=snapE(q,e),[x,y]=P(gx,gy);return`<circle cx="${x}" cy="${y}" r="6" fill="var(--halo)" stroke="#2d70b3" stroke-width="2" opacity=".6"/>`+pill(x,y,[`(${fm(gx)}, ${fm(gy)})`])}
   if(T==="member"&&i>=0){const[x,y]=P(S.n[i].x,S.n[i].y);return`<circle cx="${x}" cy="${y}" r="11" fill="#2d70b3" fill-opacity=".15" stroke="#2d70b3"/>`+pill(x,y,[`Drag from N${i}`])}
   return null}
- function hover(q,e){const[li,i,k]=pick(q,e),r=S.r,gh=ghost(q,e,i,k);if(gh!==null){$("xy").textContent=`(${fm(snap(q)[0])}, ${fm(snap(q)[1])})`;sv.style.cursor="crosshair";$("ov").innerHTML=gh;return}const ov=$("ov"),[gx,gy]=snap(q);let o="";
+ function hover(q,e){if(S.tool==="measure"||S.tool==="note"){annPrev(q,e);return}const[li,i,k]=pick(q,e),r=S.r,gh=ghost(q,e,i,k);if(gh!==null){$("xy").textContent=`(${fm(snap(q)[0])}, ${fm(snap(q)[1])})`;sv.style.cursor="crosshair";$("ov").innerHTML=gh;return}const ov=$("ov"),[gx,gy]=snap(q);let o="";
   $("xy").textContent=`(${fm(gx)}, ${fm(gy)})`;const sm=S.sum,env=S.combo==="ENV";
   sv.style.cursor=S.tool==="move"?(i>=0||li!==undefined?"grab":k!==undefined?"pointer":"grab"):"crosshair";
   if(li!==undefined){const l=S.L[li];o=pill(q.x,q.y,[`${{nf:"Nodal force",nm:"Nodal moment",mp:"Point load",md:"Distributed load"}[l.k]} · case ${l.c}`,l.k==="md"?`${l.w1} → ${l.w2} kN/m`:l.k==="nm"?`${l.M} kN·m`:`${l.P} kN at ${l.ang}°`].concat(S.tool==="move"&&l.k==="mp"?["drag to slide along the member"]:S.tool==="erase"?["click to delete"]:[]))}
@@ -494,7 +501,12 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
    o=`<circle cx="${px}" cy="${py}" r="5" fill="#2d70b3" stroke="var(--halo)" stroke-width="1.5"/>`+pill(px,py,L)}
   else if(S.tool==="node"||S.tool==="member")o=`<circle cx="${SX(gx)}" cy="${SY(gy)}" r="5" fill="none" stroke="#2d70b3" stroke-width="1.5"/><line x1="${SX(gx)-10}" y1="${SY(gy)}" x2="${SX(gx)+10}" y2="${SY(gy)}" stroke="#2d70b3"/><line x1="${SX(gx)}" y1="${SY(gy)-10}" x2="${SX(gx)}" y2="${SY(gy)+10}" stroke="#2d70b3"/>`;
   $("ro").textContent="";if(ov)ov.innerHTML=o}
- sv.onpointerdown=e=>{if(e.button===2)return;const q=pt(e),[li,i,k]=pick(q,e),t=S.tool,n=S.n[i];
+ const annPt=(q,e)=>{const j=near(q,HR);if(j>=0)return{x:S.n[j].x,y:S.n[j].y};let[x,y]=snapE(q,e);if(e.shiftKey&&S.mp){Math.abs(x-S.mp.x)>Math.abs(y-S.mp.y)?y=S.mp.y:x=S.mp.x}return{x,y}};
+ const annPrev=(q,e)=>{const p=annPt(q,e),C="#8a3ffc",sx=S.G.ox+p.x*S.G.sc,sy=S.G.oy-p.y*S.G.sc;let o=`<circle cx="${sx}" cy="${sy}" r="5" fill="none" stroke="${C}" stroke-width="2"/>`;let L=[`(${fm(p.x)}, ${fm(p.y)})`];
+  if(S.mp&&S.tool==="measure"){const dx=p.x-S.mp.x,dy=p.y-S.mp.y,ax=S.G.ox+S.mp.x*S.G.sc,ay=S.G.oy-S.mp.y*S.G.sc;o+=`<line x1="${ax}" y1="${ay}" x2="${sx}" y2="${sy}" stroke="${C}" stroke-width="1.6" stroke-dasharray="6 4"/>`;L=[`${Math.hypot(dx,dy).toFixed(3)} m`,`Δx ${fm(dx)} · Δy ${fm(dy)}`,`${(Math.atan2(dy,dx)*180/Math.PI).toFixed(1)}°`]}
+  $("ov").innerHTML=o+pill(sx,sy,L);$("xy").textContent=`(${fm(p.x)}, ${fm(p.y)})`;sv.style.cursor="crosshair"};
+ sv.onpointerdown=e=>{if(e.button===2)return;if(!S.space&&e.button===0&&(S.tool==="measure"||S.tool==="note")){const q=pt(e),p=annPt(q,e);if(S.tool==="measure"){if(!S.mp){S.mp=p;render()}else if(Math.hypot(p.x-S.mp.x,p.y-S.mp.y)>1e-6){S.an.push({k:"dim",a:S.mp,b:p});S.mp=null;render()}}else{e.preventDefault();iedOpen(e,"Note","",v=>{S.an.push({k:"note",p,t:v.trim()});render()},true)}return}
+  if(S.tool==="erase"&&!S.space&&e.button===0){const ai=annHit(pt(e));if(ai>=0){S.an.splice(ai,1);render();return}}const q=pt(e),[li,i,k]=pick(q,e),t=S.tool,n=S.n[i];
   d={i,k,li,q0:q,cx:e.clientX,cy:e.clientY,mv:false,h:false,ox:S.G.ox,oy:S.G.oy,nl:null,n0:n?{x:n.x,y:n.y}:null,pan:!!S.space||e.button===1};
   sv.setPointerCapture(e.pointerId);if(d.pan)return;
   if(t==="move"){if(e.shiftKey&&(li!==undefined||i>=0||k!==undefined)){if(S.sel){S.ms[S.sel.t].add(S.sel.i);S.sel=null}const key=li!==undefined?"l":i>=0?"n":"m",idx=li!==undefined?li:i>=0?i:k;S.ms[key].has(idx)?S.ms[key].delete(idx):S.ms[key].add(idx);d.skip=true;buildList();render();msHint();return}
@@ -539,12 +551,12 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  addEventListener("keydown",e=>{if(e.key==="Escape")rcmClose()},true);
  const ied=document.createElement("div");ied.className="cmd";ied.hidden=true;ied.innerHTML='<span></span><input autocomplete="off" spellcheck="false">';$("graph").appendChild(ied);
  let iedS=null;const iedClose=()=>{ied.hidden=true;iedS=null};
- function iedOpen(e,label,val,apply){const g=$("graph").getBoundingClientRect();ied.querySelector("span").textContent=label;const inp=ied.querySelector("input");inp.value=val;iedS={apply};ied.hidden=false;ied.style.left=Math.max(4,Math.min(e.clientX-g.left-20,g.width-ied.offsetWidth-4))+"px";ied.style.top=Math.max(4,e.clientY-g.top-18)+"px";setTimeout(()=>{inp.focus();inp.select()},60)}
- function iedCommit(){if(!iedS)return;const v=ied.querySelector("input").value,a=iedS.apply;iedClose();if(v.trim()==="")return;hist();if(a(v)===false){S.h.pop();return}full()}
+ function iedOpen(e,label,val,apply,noh){const g=$("graph").getBoundingClientRect();ied.querySelector("span").textContent=label;const inp=ied.querySelector("input");inp.value=val;iedS={apply,noh};ied.hidden=false;ied.style.left=Math.max(4,Math.min(e.clientX-g.left-20,g.width-ied.offsetWidth-4))+"px";ied.style.top=Math.max(4,e.clientY-g.top-18)+"px";setTimeout(()=>{inp.focus();inp.select()},60)}
+ function iedCommit(){if(!iedS)return;const v=ied.querySelector("input").value,a=iedS.apply,noh=iedS.noh;iedClose();if(noh){if(v.trim()===""&&noh!=="empty")return;a(v);return}if(v.trim()==="")return;hist();if(a(v)===false){S.h.pop();return}full()}
  ied.querySelector("input").addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Enter"){e.preventDefault();iedCommit()}else if(e.key==="Escape"){e.preventDefault();iedClose()}});
  ied.querySelector("input").addEventListener("blur",()=>setTimeout(()=>{if(iedS&&document.activeElement!==ied.querySelector("input")&&!ied.hidden&&iedS.focused)iedCommit()},0));ied.querySelector("input").addEventListener("focus",()=>{if(iedS)iedS.focused=true});
  let lastTap=null;sv.addEventListener("pointerup",e=>{if(e.button!==0)return;const t=performance.now(),l=lastTap;if(l&&t-l.t<450&&Math.hypot(e.clientX-l.x,e.clientY-l.y)<8){lastTap=null;dbl(e)}else lastTap={t,x:e.clientX,y:e.clientY}});
- const dbl=e=>{if(S.tool!=="move"||S.space)return;rcmClose();const q=pt(e),hl=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.dataset&&x.dataset.l!==undefined),li=hl?+hl.dataset.l:undefined,i=li===undefined?near(q,HR):-1,num=x=>{const n=parseFloat(x);return isFinite(n)?n:false};
+ const dbl=e=>{if(S.tool!=="move"||S.space)return;rcmClose();const q=pt(e),ai=annHit(q);if(ai>=0){const a=S.an[ai];e.preventDefault();iedOpen(e,a.k==="dim"?"Label (blank = measured)":"Note",a.k==="dim"?(a.t||""):a.t,v=>{if(a.k==="dim")a.t=v.trim();else if(v.trim())a.t=v.trim();render()},"empty");return}const hl=document.elementsFromPoint(e.clientX,e.clientY).find(x=>x.dataset&&x.dataset.l!==undefined),li=hl?+hl.dataset.l:undefined,i=li===undefined?near(q,HR):-1,num=x=>{const n=parseFloat(x);return isFinite(n)?n:false};
   if(li!==undefined&&S.L[li]){const l=S.L[li];e.preventDefault();
    if(l.k==="md")iedOpen(e,"w kN/m",l.w1===l.w2?l.w1:l.w1+","+l.w2,v=>{const p=v.split(/[ ,]+/).map(num);if(p.some(x=>x===false))return false;l.w1=p[0];l.w2=p.length>1?p[1]:p[0]});
    else{const f=l.k==="nm"?"M":"P";iedOpen(e,l.k==="nm"?"kN·m":"kN",l[f],v=>{const n=num(v);if(n===false)return false;l[f]=n})}return}
@@ -553,7 +565,8 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  sv.oncontextmenu=e=>{e.preventDefault();if(S.rb){S.rb=null;S.pv=null;render();return}if(d)return;
   const q=pt(e),tg=e.target.dataset||{},li=tg.l!==undefined?+tg.l:undefined,i=li===undefined?near(q,HR):-1,k=li===undefined&&i<0?nearM(q,HR):undefined,I=[],H=t=>I.push(["h",t]),SP=()=>I.push(["-"]);
   const W0=W(q),ex=$("ex"),ADD=(t,tool)=>{S.tool=tool;setTool(tool)};
-  if(li!==undefined&&S.L[li]){H("Load");I.push(["Select",()=>sel("l",li)]);I.push(["Delete load",()=>delItem({t:"l",i:li}),"Del",1])}
+  const ai=annHit(q);if(ai>=0){const a=S.an[ai];H(a.k==="dim"?"Dimension":"Note");I.push([a.k==="dim"?"Rename…":"Edit text…",()=>{iedOpen(e,a.k==="dim"?"Label":"Note",a.t||"",v=>{if(a.k==="dim")a.t=v.trim();else if(v.trim())a.t=v.trim();render()},"empty")}]);I.push(["Delete annotation",()=>{S.an.splice(ai,1);render()},"",1])}
+  else if(li!==undefined&&S.L[li]){H("Load");I.push(["Select",()=>sel("l",li)]);I.push(["Delete load",()=>delItem({t:"l",i:li}),"Del",1])}
   else if(i>=0){H("Node N"+i);I.push(["Select",()=>sel("n",i)]);
    I.push(["Support: Free",()=>{hist();S.n[i].sup="";full()}]);Object.entries(SUPS).forEach(([key,v])=>I.push(["Support: "+v[1]+(S.n[i].sup===key?" ✓":""),()=>{hist();S.n[i].sup=key;full()}]));
    I.push(["Add point load here",()=>{S.sel={t:"n",i};setTool("load")}]);I.push(["Add moment here",()=>{setTool("moment")}]);
@@ -562,7 +575,8 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
    I.push([m.t==="f"?"Make truss (pinned ends)":"Make frame (rigid)",()=>{hist();m.t=m.t==="f"?"t":"f";full()}]);
    I.push(["Zoom to member",()=>{fit([S.n[m.a],S.n[m.b]]);render()}]);
    I.push(["Delete member",()=>delItem({t:"m",i:k}),"Del",1])}
-  else{H("Canvas");I.push(["Add node here",()=>{hist();const[x,y]=snap(q);S.n.push({x,y,sup:""});S.flash={t:"n",i:S.n.length-1};full()}]);}
+  else{H("Canvas");I.push(["Add node here",()=>{hist();const[x,y]=snap(q);S.n.push({x,y,sup:""});S.flash={t:"n",i:S.n.length-1};full()}]);I.push(["Add note here…",()=>{const[x,y]=snap(q);iedOpen(e,"Note","",v=>{S.an.push({k:"note",p:{x,y},t:v.trim()});render()},true)}]);}
+  if(S.an.length)I.push(["Clear all annotations",()=>{S.an=[];S.mp=null;render()},"",1]);
   SP();H("View");
   I.push(["Zoom in",()=>zoom(1.25,q.x,q.y),"+"]);I.push(["Zoom out",()=>zoom(.8,q.x,q.y),"−"]);I.push(["Fit to structure",()=>{fit();render()},"F"]);I.push(["Reset zoom to 100%",()=>{const G=S.G,f=(G.sc0||50)/G.sc;zoom(f,q.x,q.y)}]);
   I.push([($("sd").checked?"Hide":"Show")+" deflected shape",()=>{$("sd").checked=!$("sd").checked;render()}]);
@@ -602,11 +616,11 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  sv.onpointerleave=()=>{const ov=$("ov");if(ov&&!d)ov.innerHTML="";$("xy").textContent=""};
  sv.addEventListener("wheel",e=>{e.preventDefault();const q=pt(e);zoom(e.deltaY<0?1.12:.89,q.x,q.y)},{passive:false});
 })();
-const KEYS={v:"move",n:"node",m:"member",s:"support",p:"load",w:"udl",o:"moment",e:"erase"};
+const KEYS={d:"measure",t:"note",v:"move",n:"node",m:"member",s:"support",p:"load",w:"udl",o:"moment",e:"erase"};
 addEventListener("keyup",e=>{if(e.key===" ")S.space=false});
 addEventListener("keydown",e=>{if(/INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)&&e.key===" ")return;if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;const k=e.key;if(k===" "){S.space=true;e.preventDefault();return}
  if((e.ctrlKey||e.metaKey)&&(k.toLowerCase()==="y"||(k.toLowerCase()==="z"&&e.shiftKey))){e.preventDefault();redo();return}if((e.ctrlKey||e.metaKey)&&k.toLowerCase()==="z"){e.preventDefault();undo();return}
- if(k==="Escape"){if(S.rb){S.rb=null;S.pv=null;render();return}S.pv=null;sel(null);msHint();setTool("move");return}
+ if(k==="Escape"){if(S.mp){S.mp=null;render();return}if(S.rb){S.rb=null;S.pv=null;render();return}S.pv=null;sel(null);msHint();setTool("move");return}
  if((k==="Delete"||k==="Backspace")&&msCount()){e.preventDefault();delMS();return}
  if(k.startsWith("Arrow")&&msCount()&&S.tool==="move"){e.preventDefault();hist();const st=e.shiftKey?1:S.mi,dx=k==="ArrowLeft"?-st:k==="ArrowRight"?st:0,dy=k==="ArrowUp"?st:k==="ArrowDown"?-st:0;msNodes().forEach(i=>{const p=S.n[i];p.x=+(p.x+dx).toFixed(6);p.y=+(p.y+dy).toFixed(6)});full();msHint();return}
  const L0=S.sel&&S.sel.t==="l"?S.L[S.sel.i]:null,AK={ArrowDown:[-90,"down"],ArrowUp:[90,"up"],ArrowLeft:[180,"left"],ArrowRight:[0,"right"]}[k];
