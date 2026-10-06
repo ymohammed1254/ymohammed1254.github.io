@@ -115,7 +115,7 @@ code{font:12px var(--mono);background:var(--hover);padding:1px 5px;border-radius
 <div class="tbw"><div class="tb" id="tb"></div><div class="ctx" id="ctx"></div></div>
 <div class="zm"><button id="zi" title="Zoom in">+</button><button id="zo" title="Zoom out">−</button><button id="zf" title="Fit (F)">⌂</button><button id="gs" title="Graph settings">⚙</button>
 <div class="gsm" id="gsm" hidden><h5>Graph</h5><label>Grid <input type="checkbox" id="cg" checked></label><label>Axis numbers <input type="checkbox" id="cn" checked></label><label>Snap to grid <input type="checkbox" id="cs" checked></label><label>Node labels <input type="checkbox" id="cl" checked></label>
-<h5>Results</h5><label>Deflected shape <input type="checkbox" id="sd" checked></label><label>Reactions <input type="checkbox" id="sr" checked></label><label>Exaggeration <input type="range" id="ex" min="0.2" max="4" step="0.1" value="1" style="width:100px"></label></div></div>
+<h5>Results</h5><label>Deflected shape <input type="checkbox" id="sd" checked></label><label>Reactions <input type="checkbox" id="sr" checked></label><label>Truss T / C <input type="checkbox" id="stc" checked></label><label>Exaggeration <input type="range" id="ex" min="0.2" max="4" step="0.1" value="1" style="width:100px"></label></div></div>
 <div class="pop" id="pop" hidden></div><div class="cmd" id="cmd" hidden><span id="cmdl"></span><input id="cmdi" autocomplete="off" spellcheck="false"></div><div class="sum" id="sumc"></div><div class="hint" id="ro"></div><div class="xy" id="xy"></div>
 </section></main>
 <script>
@@ -227,6 +227,10 @@ function supG(p,i,x,y){const rot=supRot(p,i);
  return`<g transform="translate(${x},${y}) rotate(${rot})" fill="var(--supf)" stroke="var(--sups)" stroke-width="1.4">${body}</g>`}
 function arc(x,y,M,col,mk,lab,R=18){const a1=M>0?60:120,a2=M>0?120:60,P=a=>[x+R*Math.cos(a*Math.PI/180),y+R*Math.sin(a*Math.PI/180)],[sx,sy]=P(a1),[ex,ey]=P(a2);
  return`<path d="M${sx},${sy} A${R},${R} 0 1 ${M>0?0:1} ${ex},${ey}" fill="none" stroke="${col}" stroke-width="2" marker-end="url(#${mk})"/><text x="${x+R+4}" y="${y-R+2}" font-size="11" font-weight="700" fill="${col}">${lab}</text>`}
+const TC={T:"#2d70b3",C:"#c74440"};
+function trussN(e){const fs=S.combo==="ENV"?ULS.map(c=>c[1]):[curF()],vs=fs.map(f=>e.at(e.L/2,f).N);return{hi:Math.max(...vs),lo:Math.min(...vs)}}
+function tcText(e){const{hi,lo}=trussN(e),z=v=>Math.abs(v)<.05,env=S.combo==="ENV";if(z(hi)&&z(lo))return{t:"0 (zero-force)",c:"var(--mut)",s:"0"};
+ if(env&&hi>.05&&lo<-.05)return{t:`T ${hi.toFixed(1)} / C ${(-lo).toFixed(1)} kN`,c:"#8a3ffc",s:"TC"};const v=Math.abs(hi)>=Math.abs(lo)?hi:lo;return v>0?{t:`T ${v.toFixed(1)} kN`,c:TC.T,s:"T"}:{t:`C ${(-v).toFixed(1)} kN`,c:TC.C,s:"C"}}
 function render(){
  const Wd=S.W,Ht=S.H,{sc,ox,oy}=S.G,X=x=>ox+x*sc,Y=y=>oy-y*sc,nd=S.n,r=S.r,ok=S.sum;
  const ar=(x1,y1,x2,y2,k,w=2)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${CC[k]}" stroke-width="${w}" marker-end="url(#a${k})"/>`;
@@ -272,6 +276,8 @@ function render(){
   if(rm!==undefined&&Math.abs(rm)>1e-6)t.push("M "+f1(rm));t.forEach((s,j)=>h+=`<text x="${x+10}" y="${y+56+j*13}" font-size="11" font-weight="700" fill="#2e7d4f" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${s}</text>`)})}
  if(S.pv)h+=`<line x1="${X(nd[S.pv.i].x)}" y1="${Y(nd[S.pv.i].y)}" x2="${S.pv.x}" y2="${S.pv.y}" stroke="var(--member)" stroke-width="4.2" stroke-linecap="round" opacity=".32"/><circle cx="${S.pv.x}" cy="${S.pv.y}" r="6" fill="var(--halo)" stroke="var(--member)" stroke-width="2" opacity=".5"/>`;
  const sl=S.sel;if(sl&&sl.t==="m"&&S.m[sl.i]){const m=S.m[sl.i],a=nd[m.a],b=nd[m.b];h+=`<line x1="${X(a.x)}" y1="${Y(a.y)}" x2="${X(b.x)}" y2="${Y(b.y)}" stroke="#2d70b3" stroke-width="12" stroke-opacity=".28" stroke-linecap="round" pointer-events="none"/>`}
+ if(ok&&$("stc")&&$("stc").checked&&r&&r.el)r.el.forEach(e=>{if(!e.tr)return;const a=nd[e.m.a],b=nd[e.m.b];if(!a||!b)return;const tc=tcText(e),x1=X(a.x),y1=Y(a.y),x2=X(b.x),y2=Y(b.y),mx=(x1+x2)/2,my=(y1+y2)/2;let ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI;if(ang>90)ang-=180;if(ang<-90)ang+=180;
+  h+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${tc.c}" stroke-width="6" stroke-opacity=".28" stroke-linecap="round" pointer-events="none"/><g transform="translate(${mx},${my}) rotate(${ang})" pointer-events="none"><text y="-7" text-anchor="middle" font-size="11" font-weight="700" fill="${tc.c}" stroke="var(--halo)" stroke-width="3" paint-order="stroke">${tc.t}</text></g>`});
  nd.forEach((p,i)=>h+=`<circle class="${FL("n",i)?"popn":""}" cx="${X(p.x)}" cy="${Y(p.y)}" r="5.5" fill="var(--halo)" stroke="var(--member)" stroke-width="2"/><text x="${X(p.x)+8}" y="${Y(p.y)-8}" font-size="10" fill="var(--mut)" display="${S.cfg.labels?"inline":"none"}">${i}</text>`);
  if(sl&&sl.t==="n"&&nd[sl.i])h+=`<circle cx="${X(nd[sl.i].x)}" cy="${Y(nd[sl.i].y)}" r="11" fill="none" stroke="#2d70b3" stroke-width="2.5" pointer-events="none"/>`;
  if(sl&&sl.t==="l"&&S.L[sl.i])h+=`<g pointer-events="none" opacity=".9"></g>`;
@@ -333,7 +339,7 @@ function chart(xs,hi,lo,col,lab,inv,L){const W=340,H=62,n=xs.length-1,mx=Math.ma
 function dgHTML(cid){const sm=S.sum;if(!sm)return`<p class="note">No results yet.</p>`;const env=S.combo==="ENV",fs=env?ULS.map(c=>c[1]):[curF()],dn=env?"D + L":ALL[S.combo][0];
  return`<p class="note">${env?"Envelope of all ULS combinations (max and min).":ALL[S.combo][0]+"."} BMD is drawn on the tension side; deflection uses ${dn}. Click a card to select that member.</p>`+S.r.el.filter(e=>cid==null||e.comp===cid).map(e=>{const ser=key=>{const hi=[],lo=[];e.xs.forEach((x,i)=>{const vs=fs.map(f=>S.val(e,i,f,key));hi.push(Math.max(...vs));lo.push(Math.min(...vs))});return env?[hi,lo]:[hi,hi]};
   const[vh,vl]=ser("V"),[mh,ml]=ser("M"),[nh,nl]=ser("N"),dx=e.df.pts.map(p=>p[0]),dv=e.df.pts.map(p=>p[3]*1000);
-  return`<div class="dgc" data-m="${e.id}"><h5>M${e.id} · N${e.m.a} → N${e.m.b} · ${e.L.toFixed(2)} m · ${e.tr?"truss":"frame"}</h5>${chart(e.xs,vh,vl,"#2d70b3","SFD · V (kN)",false,e.L)}${chart(e.xs,mh,ml,"var(--mcol)","BMD · M (kN·m)",true,e.L)}${chart(e.xs,nh,nl,"#388c46","AFD · N (kN)",false,e.L)}${chart(dx,dv,dv,"#fa7e19","δ (mm)",false,e.L)}</div>`}).join("")}
+  return`<div class="dgc" data-m="${e.id}"><h5>M${e.id} · N${e.m.a} → N${e.m.b} · ${e.L.toFixed(2)} m · ${e.tr?`truss · <span style="color:${tcText(e).c}">${tcText(e).t}</span>`:"frame"}</h5>${chart(e.xs,vh,vl,"#2d70b3","SFD · V (kN)",false,e.L)}${chart(e.xs,mh,ml,"var(--mcol)","BMD · M (kN·m)",true,e.L)}${chart(e.xs,nh,nl,"#388c46","AFD · N (kN)",false,e.L)}${chart(dx,dv,dv,"#fa7e19","δ (mm)",false,e.L)}</div>`}).join("")}
 const UD={down:["y",1],up:["y",-1],right:["x",1],left:["x",-1],normal:["n",1]};
 const memAng=k=>{const m=S.m[k],a=S.n[m.a],b=S.n[m.b];return Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI};
 const defAng=k=>S.def.ang==="n"?(k!==undefined?Math.round((memAng(k)-90)*10)/10:-90):S.def.ang;
@@ -485,7 +491,7 @@ $("zi").onclick=()=>zoom(1.25);$("zo").onclick=()=>zoom(.8);$("zf").onclick=()=>
 $("res").onclick=e=>{const t=e.target.closest("[data-s],[data-n]");if(!t)return;if(t.dataset.s)sel("m",+t.dataset.s);else if(t.dataset.n)sel("n",+t.dataset.n)};
 $("ct").onclick=e=>{const t=e.target.closest("[data-c]");if(!t)return;S.combo=+t.dataset.c;$("cmb").value=S.combo;upd()};
 $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd()};
-["E","A","I"].forEach(i=>$(i).oninput=upd);["sd","sr","ex"].forEach(i=>$(i).oninput=render);$("pre").onchange=()=>load($("pre").value);
+["E","A","I"].forEach(i=>$(i).oninput=upd);["sd","sr","stc","ex"].forEach(i=>$(i).oninput=render);$("pre").onchange=()=>load($("pre").value);
 /* ---------- canvas mouse ---------- */
 (function(){const sv=$("cv");let d=null;const HR=matchMedia("(pointer:coarse)").matches?22:12;
  const pt=e=>{const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(sv.getScreenCTM().inverse())};
@@ -521,7 +527,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
    if(sm){const u=sm.uD;L.push(`Δx ${(u[3*i]*1000).toFixed(2)} mm · Δy ${(u[3*i+1]*1000).toFixed(2)} mm`,`θ ${(u[3*i+2]*1000).toFixed(3)} mrad · ${env?"D + L":ALL[S.combo][0]}`)}
    o=`<circle cx="${SX(p.x)}" cy="${SY(p.y)}" r="11" fill="#2d70b3" fill-opacity=".14" stroke="#2d70b3" stroke-width="1.5"/>`+pill(SX(p.x),SY(p.y),L)}
   else if(k!==undefined){const m=S.m[k],a=S.n[m.a],b=S.n[m.b],Lm=Math.hypot(b.x-a.x,b.y-a.y),[wx,wy]=W(q),tt=Math.min(1,Math.max(0,((wx-a.x)*(b.x-a.x)+(wy-a.y)*(b.y-a.y))/(Lm*Lm))),x=tt*Lm,e2=sm?r.el.find(z=>z.id===k):null,px=SX(a.x+(b.x-a.x)*tt),py=SY(a.y+(b.y-a.y)*tt);
-   const L=[`M${k} (${m.t==="t"?"truss":"frame"}) · x = ${x.toFixed(2)} of ${Lm.toFixed(2)} m`];
+   const L=[`M${k} (${m.t==="t"?"truss":"frame"}) · x = ${x.toFixed(2)} of ${Lm.toFixed(2)} m`];if(e2&&e2.tr){const tc=tcText(e2);L.push(tc.s==="T"?`Tension · ${tc.t}`:tc.s==="C"?`Compression · ${tc.t}`:tc.s==="TC"?`Envelope · ${tc.t}`:"Zero-force member")}
    if(e2){if(env){const vs=ULS.map(c=>e2.at(x,c[1])),mm=key=>`${Math.max(...vs.map(v=>v[key])).toFixed(1)} / ${Math.min(...vs.map(v=>v[key])).toFixed(1)}`;L.push(`M  ${mm("M")} kN·m`,`V  ${mm("V")} kN`,`N  ${mm("N")} kN`,"envelope max / min")}
     else{const v=e2.at(x,curF());L.push(`M = ${v.M.toFixed(2)} kN·m`,`V = ${v.V.toFixed(2)} kN`,`N = ${v.N.toFixed(2)} kN`)}}
    o=`<circle cx="${px}" cy="${py}" r="5" fill="#2d70b3" stroke="var(--halo)" stroke-width="1.5"/>`+pill(px,py,L)}
