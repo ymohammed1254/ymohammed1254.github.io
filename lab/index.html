@@ -124,7 +124,7 @@ const ULS=[["1.4D",[1.4,0,0,0]],["1.25D + 1.5L + 1.0S",[1.25,1.5,1,0]],["1.25D +
 const SLS=[["D + L (service)",[1,1,0,0]],["D + S (service)",[1,0,1,0]],["D + W (service)",[1,0,0,1]]];
 const UNF=CN.map((c,i)=>[c+" only (unfactored)",[0,1,2,3].map(j=>j===i?1:0)]),ALL=[...ULS,...SLS,...UNF],DL=ULS.length;
 const SUPS={pin:[[0,1],"Pin"],roller:[[1],"Roller"],rollerY:[[0],"Wall roller"],fixed:[[0,1,2],"Fixed"],slider:[[1,2],"Slider"]};
-const S={n:[],m:[],L:[],sel:null,tool:"move",sup:"pin",lc:"D",def:{P:20,q:10,M:20,t:"f",ang:-90,ud:"down"},G:{sc:50,sc0:50,ox:100,oy:300},h:[],combo:"ENV",dg:"M",pv:null,ph:1,anim:false,mi:1,rd:[],cfg:{grid:true,nums:true,snap:true,labels:true},W:900,H:520,fold:{},an:[],mp:null,ms:{n:new Set(),m:new Set(),l:new Set()},rb:null};
+const S={n:[],m:[],L:[],sel:null,tool:"move",sup:"pin",lc:"D",def:{P:20,q:10,M:20,t:"f",ang:-90,ud:"down"},G:{sc:50,sc0:50,ox:100,oy:300},h:[],combo:"ENV",dg:"",pv:null,ph:1,anim:false,mi:1,rd:[],cfg:{grid:true,nums:true,snap:true,labels:true},W:900,H:520,fold:{},an:[],mp:null,ms:{n:new Set(),m:new Set(),l:new Set()},rb:null};
 /* ---------- presets ---------- */
 const N=(x,y,sup="")=>({x,y,sup}),B=(a,b,t="f")=>({a,b,t}),ud=(j,c,w,dir="y")=>({k:"md",j,t1:0,t2:1,w1:w,w2:w,dir,c}),mp=(j,c,P,t,ang=-90)=>({k:"mp",j,t,P,ang,c}),nf=(i,c,P,ang=-90)=>({k:"nf",i,P,ang,c});
 const PRE={
