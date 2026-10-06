@@ -12,7 +12,6 @@ body{font:14px/1.45 var(--ui);color:var(--ink);background:var(--panel);display:f
 .hd{min-height:56px;flex:none;display:flex;align-items:center;gap:18px;padding:6px 14px;background:var(--panel);color:var(--ink);border-bottom:1px solid var(--line);flex-wrap:wrap;z-index:4}
 .brand{display:flex;gap:10px;align-items:center}.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#fa7e19,#c74440);display:grid;place-items:center}
 .brand b{display:block;font-size:15px;letter-spacing:.01em}.brand a{font-size:12px;color:var(--mut);text-decoration:none}.brand a:hover{color:var(--acc)}
-.fbar{display:flex;align-items:center;gap:6px;position:relative}.fbar .pn{border:1px solid transparent;background:none;border-radius:7px;padding:5px 8px;font:600 13.5px var(--ui);color:var(--ink);width:170px}.fbar .pn:hover{border-color:var(--line)}.fbar .pn:focus{outline:2px solid var(--acc);border-color:transparent}.fbar>button{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 11px;font:13px var(--ui);cursor:pointer;color:var(--ink)}.fbar>button:hover{background:var(--hover)}.fbar>button.pri{background:var(--acc);border-color:var(--acc);color:#fff}.fbar .menu{left:0;top:40px;width:270px}.fbar .menu kbd{float:right;font:10.5px var(--mono);color:var(--mut);margin-top:2px}.fst{font-size:11.5px;color:var(--mut);white-space:nowrap}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:9px;font-size:13px;z-index:80;box-shadow:0 6px 20px rgba(0,0,0,.2);max-width:90vw}.drop{position:absolute;inset:0;z-index:20;background:rgba(45,112,179,.12);border:3px dashed var(--acc);display:grid;place-items:center;font:600 16px var(--ui);color:var(--acc);pointer-events:none}
 .hc{display:flex;gap:14px;align-items:flex-end;margin-left:auto;flex-wrap:wrap}
 .ctl{display:flex;flex-direction:column;font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.07em;gap:3px}
 .hd select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:5px 8px;font:13px var(--ui);max-width:230px}
@@ -91,7 +90,6 @@ code{font:12px var(--mono);background:var(--hover);padding:1px 5px;border-radius
 <header class="hd">
 <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 19h18M6 19V9l6-4 6 4v10" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M6 9l12 10M18 9L6 19" stroke="#fff" stroke-width="1.2" opacity=".7"/></svg></span>
 <div><b>Structural Analysis Lab</b><a href="https://ymohammed1254.github.io/">by Yousuf Mohammed ↗</a></div></div>
-<div class="fbar"><input class="pn" id="pname" value="Untitled model" title="Project name (used as the file name)" spellcheck="false"><button id="fbtn">File ▾</button><button id="share" class="pri" title="Copy a link that opens this exact model">Share link</button><span class="fst" id="fst"></span><div class="menu" id="fmenu" hidden></div><input type="file" id="fopen" accept=".json,.sal,application/json" hidden></div>
 <div class="hc"><label class="ctl">Start from (replaces)<select id="pre"></select></label><label class="ctl">Load combination<select id="cmb"></select></label><label class="ctl">Diagram<span class="seg" id="dgs"></span></label></div>
 </header>
 <main class="body">
@@ -113,7 +111,7 @@ code{font:12px var(--mono);background:var(--hover);padding:1px 5px;border-radius
 <p class="note">Combinations follow the pattern of NBCC Table 4.1.3.2-A; verify factors against the current edition. Linear elastic, small displacements, one section for all members, no self-weight, P-delta, buckling or resistance checks. Distributed loads are per metre of member length; gravity acts down, lateral acts in +x. Moments are counter-clockwise positive; moment diagrams are drawn on the tension side. For learning and preliminary checks, not a substitute for design by a P.Eng.</p>
 <p class="note"><b>Shortcuts:</b> V select · N node · M member · S support · P point load · W UDL · O moment · E erase · Del delete · arrows nudge · Ctrl+Z / Ctrl+Y undo / redo · F fit · Esc deselect.</p></div></div>
 </aside>
-<section class="graph" id="graph"><svg id="cv"></svg><div class="drop" id="drop" hidden>Drop a model file to open it</div>
+<section class="graph" id="graph"><svg id="cv"></svg>
 <div class="tbw"><div class="tb" id="tb"></div><div class="ctx" id="ctx"></div></div>
 <div class="zm"><button id="zi" title="Zoom in">+</button><button id="zo" title="Zoom out">−</button><button id="zf" title="Fit (F)">⌂</button><button id="gs" title="Graph settings">⚙</button>
 <div class="gsm" id="gsm" hidden><h5>Graph</h5><label>Grid <input type="checkbox" id="cg" checked></label><label>Axis numbers <input type="checkbox" id="cn" checked></label><label>Snap to grid <input type="checkbox" id="cs" checked></label><label>Node labels <input type="checkbox" id="cl" checked></label>
@@ -340,11 +338,10 @@ const newUDL=(j,t1,t2)=>{const[dir,sg]=UD[S.def.ud];return{k:"md",j,t1,t2,w1:sg*
 const ldir=(dir,a,b,w)=>{const L0=Math.hypot(b.x-a.x,b.y-a.y)||1,cx=(b.x-a.x)/L0,cy=(b.y-a.y)/L0;let fx,fy;if(dir==="x"){fx=1;fy=0}else if(dir==="n"){fx=cy;fy=cx}else{fx=0;fy=1}const sg=w<0?-1:1;return[fx*sg,fy*sg,sg]};
 const dirSeg=()=>`<span class="seg" title="Load direction (R to rotate)">${[[-90,"↓"],[180,"←"],[0,"→"],[90,"↑"],["n","⊥ member"]].map(([a,t])=>`<button data-ang="${a}" class="${String(S.def.ang)===String(a)?"on":""}">${t}</button>`).join("")}</span>`;
 const udSeg=()=>`<span class="seg" title="UDL direction (R to rotate)">${[["down","↓ gravity"],["up","↑ uplift"],["right","→"],["left","←"],["normal","⊥ normal"]].map(([a,t])=>`<button data-ud="${a}" class="${S.def.ud===a?"on":""}">${t}</button>`).join("")}</span>`;
-function insertPreset(name){insertModel(PRE[name]())}
-function insertModel(p){if(!p.n.length)return;hist();const n0=S.n.length,m0=S.m.length;let dx=0,dy=0;
+function insertPreset(name){const p=PRE[name]();if(!p.n.length)return;hist();const n0=S.n.length,m0=S.m.length;let dx=0,dy=0;
  if(n0){const mx=Math.max(...S.n.map(q=>q.x)),my=Math.min(...S.n.map(q=>q.y)),px=Math.min(...p.n.map(q=>q.x)),py=Math.min(...p.n.map(q=>q.y));dx=mx+4-px;dy=my-py}
  p.n.forEach(q=>S.n.push({x:+(q.x+dx).toFixed(6),y:+(q.y+dy).toFixed(6),sup:q.sup}));p.m.forEach(m=>S.m.push({...m,a:m.a+n0,b:m.b+n0}));
- p.L.forEach(l=>{const c={...l};if(c.k==="nf"||c.k==="nm")c.i+=n0;else c.j+=m0;S.L.push(c)});(p.an||[]).forEach(a=>{const sh=q=>({x:+(q.x+dx).toFixed(6),y:+(q.y+dy).toFixed(6)});S.an.push(a.k==="dim"?{...a,a:sh(a.a),b:sh(a.b)}:{...a,p:sh(a.p)})});S.sel=null;fit();full()}
+ p.L.forEach(l=>{const c={...l};if(c.k==="nf"||c.k==="nm")c.i+=n0;else c.j+=m0;S.L.push(c)});S.sel=null;fit();full()}
 function strHTML(){const r=S.r;if(!r||!r.cids||!S.m.length)return"";const env=S.combo==="ENV",fs=env?ULS.map(c=>c[1]):[curF()];
  return`<table><tr><th>Structure</th><th>Members</th><th>Status</th><th>|M| max</th><th>|V| max</th><th>δ</th></tr>${r.ord.map((cid,si)=>{const ms=S.m.filter(m=>r.comp[m.a]===cid),ns=new Set(),hf=new Map();ms.forEach(m=>[m.a,m.b].forEach(i=>{ns.add(i);hf.set(i,hf.get(i)||m.t==="f")}));let eq=0;hf.forEach(v=>eq+=v?3:2);let rr=0;ns.forEach(i=>{const p=S.n[i];if(p.sup)rr+=SUPS[p.sup][0].length});
   const deg=ms.reduce((t,m)=>t+(m.t==="t"?1:3),0)+rr-eq;if(r.badSet.has(cid))return`<tr data-rt="${cid}" style="cursor:pointer"><td>S${si+1}</td><td>${ms.length}</td><td style="color:#c74440">Mechanism</td><td>–</td><td>–</td><td>–</td></tr>`;
@@ -660,48 +657,5 @@ $("gs").onclick=e=>{e.stopPropagation();$("gsm").hidden=!$("gsm").hidden;$("menu
 document.addEventListener("click",()=>{$("menu").hidden=true;$("gsm").hidden=true});
 [["cg","grid"],["cn","nums"],["cs","snap"],["cl","labels"]].forEach(([id,k])=>$(id).onchange=()=>{S.cfg[k]=$(id).checked;render()});
 if(typeof ResizeObserver!=="undefined")new ResizeObserver(()=>{const g=$("graph");if(!g.clientWidth)return;S.W=g.clientWidth;S.H=g.clientHeight;$("cv").setAttribute("viewBox",`0 0 ${S.W} ${S.H}`);if(!S.sized){S.sized=true;fit()}render()}).observe($("graph"));
-
-/* ---------- File: save, open, share, autosave ---------- */
-const FKEY="sal.autosave.v1";
-const toast=(t,ms=2600)=>{let el=document.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";document.body.appendChild(el)}el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,ms)};
-const pname=()=>($("pname").value.trim()||"Untitled model");
-const fname=ext=>pname().replace(/[\\/:*?"<>|]+/g,"").replace(/\s+/g,"_")+ext;
-function modelObj(){return{app:"structural-analysis-lab",v:1,name:pname(),saved:new Date().toISOString(),n:S.n,m:S.m,L:S.L,an:S.an,combo:S.combo,cfg:S.cfg,def:{t:S.def.t}}}
-function applyModel(o,{keepHist=false}={}){if(!o||!Array.isArray(o.n)||!Array.isArray(o.m)||!Array.isArray(o.L))throw new Error("Not a Structural Analysis Lab model");
- const nn=o.n.length,ok=o.n.every(p=>isFinite(p.x)&&isFinite(p.y))&&o.m.every(m=>m.a>=0&&m.a<nn&&m.b>=0&&m.b<nn);if(!ok)throw new Error("Model file is damaged");
- if(keepHist)hist();else{S.h=[];S.rd=[]}clrMS();S.n=o.n.map(p=>({x:+p.x,y:+p.y,sup:p.sup||""}));S.m=o.m;S.L=o.L;S.an=Array.isArray(o.an)?o.an:[];S.mp=null;S.sel=null;
- if(o.name)$("pname").value=o.name;if(o.combo&&(o.combo==="ENV"||ALL[o.combo])&&$("cmb")){S.combo=o.combo;$("cmb").value=o.combo}if(o.cfg)Object.assign(S.cfg,o.cfg);
- [["cg","grid"],["cn","nums"],["cs","snap"],["cl","labels"]].forEach(([id,k])=>{if($(id))$(id).checked=!!S.cfg[k]});fit();full();dirty(false)}
-function dl(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
-function saveFile(){dl(new Blob([JSON.stringify(modelObj(),null,1)],{type:"application/json"}),fname(".json"));dirty(false);toast("Saved "+fname(".json"))}
-async function readFile(f,merge){try{const o=JSON.parse(await f.text());if(merge){if(!Array.isArray(o.n))throw new Error("Not a Structural Analysis Lab model");insertModel(JSON.parse(JSON.stringify(o)));toast(`Added "${o.name||f.name}" beside the current model`)}else{applyModel(o,{keepHist:true});toast(`Opened "${o.name||f.name}"`)}}catch(err){toast("Couldn't open file: "+err.message,4000)}}
-const b64u={enc:u=>{let s="";for(let i=0;i<u.length;i+=32768)s+=String.fromCharCode.apply(null,u.subarray(i,i+32768));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")},dec:s=>{s=s.replace(/-/g,"+").replace(/_/g,"/");const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}};
-async function pack(o){const raw=new TextEncoder().encode(JSON.stringify(o));if(typeof CompressionStream==="undefined")return"j="+b64u.enc(raw);const z=new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer());return"z="+b64u.enc(z)}
-async function unpack(h){const[k,v]=[h.slice(0,2),h.slice(2)];let u=b64u.dec(v);if(k==="z="){u=new Uint8Array(await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer())}else if(k!=="j=")throw new Error("bad link");return JSON.parse(new TextDecoder().decode(u))}
-async function shareLink(){const o=modelObj();delete o.saved;const url=location.href.split("#")[0]+"#"+await pack(o);try{await navigator.clipboard.writeText(url);toast("Link copied: anyone with it opens this model and can edit their own copy")}catch(e){prompt("Copy this link:",url)}return url}
-function exportImg(kind){const sv=$("cv"),cs=getComputedStyle(document.documentElement),c=sv.cloneNode(true);c.querySelectorAll("#ov,.hit,.lh").forEach(e=>e.remove());c.setAttribute("xmlns","http://www.w3.org/2000/svg");c.setAttribute("width",S.W);c.setAttribute("height",S.H);
- let x=new XMLSerializer().serializeToString(c).replace(/var\((--[\w-]+)\)/g,(_,v)=>cs.getPropertyValue(v).trim()||"#000");const bg=cs.getPropertyValue("--panel").trim()||"#fff";x=x.replace(/^<svg([^>]*)>/,`<svg$1><rect width="100%" height="100%" fill="${bg}"/><style>text{font-family:Inter,system-ui,sans-serif}</style>`);
- if(kind==="svg"){dl(new Blob([x],{type:"image/svg+xml"}),fname(".svg"));return}
- const img=new Image(),k=2;img.onload=()=>{const cv=document.createElement("canvas");cv.width=S.W*k;cv.height=S.H*k;const g=cv.getContext("2d");g.scale(k,k);g.drawImage(img,0,0);cv.toBlob(b=>dl(b,fname(".png")),"image/png")};img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(x)}
-let lastSnap="",isDirty=false;const snapStr=()=>JSON.stringify([pname(),S.n,S.m,S.L,S.an]);
-function dirty(v){isDirty=v;if(!v)lastSaved=snapStr();$("fst").textContent=v?"● unsaved changes (autosaved in this browser)":""}let lastSaved="";
-setInterval(()=>{const s=snapStr();if(s===lastSnap)return;lastSnap=s;try{localStorage.setItem(FKEY,JSON.stringify(modelObj()))}catch(e){}if(lastSaved&&s!==lastSaved&&!isDirty)dirty(true)},1500);
-$("pname").addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Enter"||e.key==="Escape")e.target.blur()});
-$("fmenu").innerHTML=[["new","New blank model",""],["open","Open file…","Ctrl+O"],["merge","Add file beside current…","combine a teammate's work"],["save","Save file (.json)","Ctrl+S"],["mh","Share & export"],["link","Copy share link",""],["png","Export image (.png)",""],["svg","Export drawing (.svg)",""],["mh","Browser"],["restore","Restore last autosave",""]].map(([k,t,d])=>k==="mh"?`<div class="mh">${t}</div>`:`<button data-f="${k}"><b>${t}${/Ctrl/.test(d)?`<kbd>${d}</kbd>`:""}</b>${d&&!/Ctrl/.test(d)?`<span>${d}</span>`:""}</button>`).join("");
-let mergeNext=false;
-$("fbtn").onclick=e=>{e.stopPropagation();$("fmenu").hidden=!$("fmenu").hidden;$("menu").hidden=true;$("gsm").hidden=true};
-document.addEventListener("click",()=>{$("fmenu").hidden=true});
-$("fmenu").onclick=e=>{e.stopPropagation();const b=e.target.closest("button");if(!b)return;$("fmenu").hidden=true;const k=b.dataset.f;
- if(k==="new"){if(isDirty&&!confirm("Start a new model? Unsaved changes stay in undo (Ctrl+Z)."))return;applyModel({n:[],m:[],L:[],an:[],name:"Untitled model"},{keepHist:true})}
- if(k==="open"||k==="merge"){mergeNext=k==="merge";$("fopen").value="";$("fopen").click()}
- if(k==="save")saveFile();if(k==="link")shareLink();if(k==="png")exportImg("png");if(k==="svg")exportImg("svg");
- if(k==="restore"){try{const o=JSON.parse(localStorage.getItem(FKEY));applyModel(o,{keepHist:true});toast("Restored autosave")}catch(err){toast("No autosave found")}}};
-$("fopen").onchange=e=>{const f=e.target.files[0];if(f)readFile(f,mergeNext)};
-$("share").onclick=shareLink;
-addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey))return;const k=e.key.toLowerCase();if(k==="s"){e.preventDefault();saveFile()}else if(k==="o"){e.preventDefault();mergeNext=false;$("fopen").value="";$("fopen").click()}},true);
-{const g=$("graph");let dc=0;g.addEventListener("dragenter",e=>{if([...e.dataTransfer.types].includes("Files")){e.preventDefault();dc++;$("drop").hidden=false}});g.addEventListener("dragover",e=>{if([...e.dataTransfer.types].includes("Files"))e.preventDefault()});g.addEventListener("dragleave",()=>{if(--dc<=0){dc=0;$("drop").hidden=true}});g.addEventListener("drop",e=>{e.preventDefault();dc=0;$("drop").hidden=true;const f=e.dataTransfer.files[0];if(f)readFile(f,e.shiftKey)})}
-addEventListener("hashchange",()=>openHash());
-async function openHash(){const h=location.hash.slice(1);if(!/^[zj]=/.test(h))return false;try{applyModel(await unpack(h));history.replaceState(null,"",location.pathname+location.search);toast("Opened shared model. Your edits are your own copy; share a new link to send them back.",4500);return true}catch(e){toast("That share link is broken or incomplete",4000);return false}}
 setTool("move");load("Portal frame");
-(async()=>{if(await openHash())return;try{const o=JSON.parse(localStorage.getItem(FKEY)||"null");if(o&&o.n&&o.n.length){applyModel(o);toast("Restored your last session · File ▸ New for a blank model")}}catch(e){}dirty(false)})();
 </script></body></html>
