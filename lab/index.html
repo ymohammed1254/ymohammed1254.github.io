@@ -423,6 +423,7 @@ const edit=e=>{const p=e.target.dataset.e;if(!p)return;const[t,i,f]=p.split(":")
 $("side").addEventListener("click",e=>{const fh=e.target.closest("[data-fold]");if(fh){S.fold[fh.dataset.fold]=!S.fold[fh.dataset.fold];buildList();return}const dl=e.target.dataset.del;if(dl){const[t,i]=dl.split(":");delItem({t,i:+i});return}if(/INPUT|SELECT|OPTION/.test(e.target.tagName))return;const r=e.target.closest("[data-sel]");if(r){const[t,i]=r.dataset.sel.split(":");sel(t,+i,false)}});
 /* ---------- selection, tools ---------- */
 const clrMS=()=>{S.ms={n:new Set(),m:new Set(),l:new Set()}},msCount=()=>S.ms.n.size+S.ms.m.size+S.ms.l.size;
+const selNodes=()=>{if(msCount())return msNodes();const s=S.sel;if(!s)return[];if(s.t==="n")return S.n[s.i]?[s.i]:[];if(s.t==="m"){const m=S.m[s.i];return m?[m.a,m.b]:[]}return[]};
 const msNodes=()=>{const o=new Set(S.ms.n);S.ms.m.forEach(k=>{const m=S.m[k];if(m){o.add(m.a);o.add(m.b)}});return[...o].filter(i=>S.n[i])};
 function msHint(){const c=msCount();$("ro").textContent=c?`${c} selected · ${S.ms.n.size} nodes, ${S.ms.m.size} members, ${S.ms.l.size} loads · Del deletes · arrows or drag a node to move · Esc clears`:""}
 function delMS(){hist();[...S.ms.l].sort((a,b)=>b-a).forEach(i=>S.L.splice(i,1));[...S.ms.m].sort((a,b)=>b-a).forEach(k=>{if(S.m[k])delMember(k)});[...S.ms.n].sort((a,b)=>b-a).forEach(i=>{if(S.n[i])delNode(i)});clrMS();S.sel=null;full();msHint()}
@@ -493,6 +494,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  function hover(q,e){if(S.tool==="pan"){sv.style.cursor="grab";$("ov").innerHTML="";const[gx,gy]=snap(q);$("xy").textContent=`(${fm(gx)}, ${fm(gy)})`;return}if(S.tool==="measure"||S.tool==="note"){annPrev(q,e);return}const[li,i,k]=pick(q,e),r=S.r,gh=ghost(q,e,i,k);if(gh!==null){$("xy").textContent=`(${fm(snap(q)[0])}, ${fm(snap(q)[1])})`;sv.style.cursor="crosshair";$("ov").innerHTML=gh;return}const ov=$("ov"),[gx,gy]=snap(q);let o="";
   $("xy").textContent=`(${fm(gx)}, ${fm(gy)})`;const sm=S.sum,env=S.combo==="ENV";
   sv.style.cursor=S.tool==="move"?(i>=0||li!==undefined?"grab":k!==undefined?"pointer":"grab"):"crosshair";
+  if(S.tool==="move"&&i<0&&li===undefined&&k!==undefined&&S.m[k]){const sn=selNodes();if(sn.includes(S.m[k].a)&&sn.includes(S.m[k].b))sv.style.cursor="move"}
   if(S.tool==="move"&&li===undefined){const si=supAt(q,i);if(si>=0){const p=S.n[si];ov.innerHTML=pill(q.x,q.y,[`${SUPS[p.sup][1]} support on N${si}`,"drag onto another node to move it"]);sv.style.cursor="grab";return}}
   if(li!==undefined){const l=S.L[li];o=pill(q.x,q.y,[`${{nf:"Nodal force",nm:"Nodal moment",mp:"Point load",md:"Distributed load"}[l.k]} · case ${l.c}`,l.k==="md"?`${l.w1} → ${l.w2} kN/m`:l.k==="nm"?`${l.M} kN·m`:`${l.P} kN at ${l.ang}°`].concat(S.tool==="move"&&l.k==="mp"?["drag to slide along the member"]:S.tool==="erase"?["click to delete"]:[]))}
   else if(i>=0){const p=S.n[i],L=[`Node ${i}   (${fm(p.x)}, ${fm(p.y)})`];if(p.sup)L.push(SUPS[p.sup][1]+" support");
@@ -516,7 +518,8 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
   if(t==="move"&&e.button===2){d.box={x0:q.x,y0:q.y};d.rbox=true;return}
   if(t==="move"&&!e.shiftKey&&li===undefined){const si=supAt(q,i);if(si>=0){d.sup=si;sel("n",si);return}}
   if(t==="move"){if(e.shiftKey&&(li!==undefined||i>=0||k!==undefined)){if(S.sel){S.ms[S.sel.t].add(S.sel.i);S.sel=null}const key=li!==undefined?"l":i>=0?"n":"m",idx=li!==undefined?li:i>=0?i:k;S.ms[key].has(idx)?S.ms[key].delete(idx):S.ms[key].add(idx);d.skip=true;buildList();render();msHint();return}
-   if(i>=0&&msCount()&&msNodes().includes(i))d.grp=msNodes().map(j=>[j,S.n[j].x,S.n[j].y]);else if(li!==undefined)sel("l",li);else if(i>=0)sel("n",i);else if(k!==undefined)sel("m",k);else if(e.shiftKey)d.box={x0:q.x,y0:q.y};else d.pan=true}
+   const sn=selNodes(),onSel=(i>=0&&sn.length>1&&sn.includes(i))||(i<0&&k!==undefined&&S.m[k]&&sn.includes(S.m[k].a)&&sn.includes(S.m[k].b));
+   if(onSel)d.grp=sn.map(j=>[j,S.n[j].x,S.n[j].y]);else if(li!==undefined)sel("l",li);else if(i>=0)sel("n",i);else if(k!==undefined)sel("m",k);else if(e.shiftKey)d.box={x0:q.x,y0:q.y};else d.pan=true}
   else if(t==="load"&&(i>=0||k!==undefined)){hist();d.h=true;S.L.push(i>=0?{k:"nf",i,P:S.def.P,ang:defAng(),c:S.lc}:{k:"mp",j:k,t:projE(k,q,e),P:S.def.P,ang:defAng(k),c:S.lc});d.nl=S.L.length-1;S.placing=d.nl;upd()}
   else if(t==="moment"&&i>=0){hist();d.h=true;S.L.push({k:"nm",i,M:S.def.M,c:S.lc});d.nl=S.L.length-1;S.placing=d.nl;upd()}
   else if(t==="udl"){if(k!==undefined){hist();d.h=true;d.t0=projE(k,q,e);S.L.push(newUDL(k,0,1));d.nl=S.L.length-1;S.placing=d.nl;upd()}else if(i>=0)d.un=i}};
