@@ -39,7 +39,7 @@ body{font:14px/1.45 var(--ui);color:var(--ink);background:var(--panel);display:f
 .eb select{border:1px solid var(--line);border-radius:6px;padding:2px 4px;font:12.5px var(--ui);background:var(--panel);color:var(--ink)}
 .u{color:var(--mut);font-size:13px}.x{position:absolute;right:6px;top:6px;opacity:0;border:0;background:none;cursor:pointer;color:var(--mut);font-size:18px;line-height:1}.ex:hover .x{opacity:1}.x:hover{color:#c74440}
 .empty{padding:12px 14px;font-size:13px;color:var(--mut)}.spark{width:100%;display:block;margin-top:4px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
-.cmd{position:absolute;z-index:7;display:flex;align-items:center;gap:7px;background:var(--panel);border:1.5px solid var(--acc);border-radius:9px;padding:4px 6px 4px 10px;box-shadow:0 4px 14px rgba(0,0,0,.12);font-size:11.5px;color:var(--mut)}.cmd input{width:120px;border:0;outline:none;font:14px var(--mono);color:var(--ink);background:transparent}
+.cmd{position:absolute;z-index:7;display:flex;align-items:center;gap:7px;background:var(--panel);border:1.5px solid var(--acc);border-radius:9px;padding:4px 6px 4px 10px;box-shadow:0 4px 14px rgba(0,0,0,.12);font-size:11.5px;color:var(--mut)}#cmd{pointer-events:none}.cmd input{width:120px;border:0;outline:none;font:14px var(--mono);color:var(--ink);background:transparent}
 .lh{stroke:transparent;fill:transparent;cursor:pointer}.hit{stroke:transparent;stroke-width:18;fill:none;cursor:pointer}
 @keyframes pop{0%{opacity:0;transform:translateY(-14px)}100%{opacity:1;transform:none}}@keyframes popn{0%{opacity:0;transform:scale(.2)}70%{transform:scale(1.15)}100%{opacity:1;transform:scale(1)}}
 
@@ -523,7 +523,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
   else if(t==="load"&&(i>=0||k!==undefined)){hist();d.h=true;S.L.push(i>=0?{k:"nf",i,P:S.def.P,ang:defAng(),c:S.lc}:{k:"mp",j:k,t:projE(k,q,e),P:S.def.P,ang:defAng(k),c:S.lc});d.nl=S.L.length-1;S.placing=d.nl;upd()}
   else if(t==="moment"&&i>=0){hist();d.h=true;S.L.push({k:"nm",i,M:S.def.M,c:S.lc});d.nl=S.L.length-1;S.placing=d.nl;upd()}
   else if(t==="udl"){if(k!==undefined){hist();d.h=true;d.t0=projE(k,q,e);S.L.push(newUDL(k,0,1));d.nl=S.L.length-1;S.placing=d.nl;upd()}else if(i>=0)d.un=i}};
- sv.onpointermove=e=>{const q=pt(e);if(!d){S.lastQ=q;if(S.cmd){S.cmdShift=e.shiftKey;cmdEval($("cmdi").value,false);return}if(S.tool==="member"&&S.rb&&S.n[S.rb.i]){const en=memEnd(q,e,S.rb.i),a=S.n[S.rb.i];S.pv={i:S.rb.i,x:SX(en.x),y:SY(en.y)};render();tip(q,[`L = ${Math.hypot(en.x-a.x,en.y-a.y).toFixed(2)} m ∠ ${(Math.atan2(en.y-a.y,en.x-a.x)*180/Math.PI).toFixed(1)}°`,"click to place · type a length · Esc or right-click to stop"]);return}hover(q,e);S.hk=pick(q,e);return}
+ sv.onpointermove=e=>{const q=pt(e);if(!d){S.lastQ=q;if(S.cmd){S.cmdShift=e.shiftKey;S.cmdFree=e.ctrlKey||e.altKey||e.metaKey;cmdEval($("cmdi").value,false);return}if(S.tool==="member"&&S.rb&&S.n[S.rb.i]){const en=memEnd(q,e,S.rb.i),a=S.n[S.rb.i];S.pv={i:S.rb.i,x:SX(en.x),y:SY(en.y)};render();tip(q,[`L = ${Math.hypot(en.x-a.x,en.y-a.y).toFixed(2)} m ∠ ${(Math.atan2(en.y-a.y,en.x-a.x)*180/Math.PI).toFixed(1)}°`,"click to place · type a length · Esc or right-click to stop"]);return}hover(q,e);S.hk=pick(q,e);return}
   if(d.skip)return;
   if(Math.hypot(e.clientX-d.cx,e.clientY-d.cy)>4)d.mv=true;if(!d.mv)return;
   if(d.sup!==undefined){const p=S.n[d.sup],j=near(q,30);sv.style.cursor="grabbing";let o=`<g opacity=".25">${supG(p,d.sup,SX(p.x),SY(p.y))}</g>`;
@@ -602,7 +602,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
   if(m=v.match(/^@\s*(-?[\d.]+)\s*[, ]\s*(-?[\d.]+)$/))return base?[r(base.x+ +m[1]),r(base.y+ +m[2])]:null;
   if(m=v.match(/^@?\s*([\d.]+)\s*<\s*(-?[\d.]+)$/)){if(!base)return null;const a=+m[2]*Math.PI/180;return[r(base.x+ +m[1]*Math.cos(a)),r(base.y+ +m[1]*Math.sin(a))]}
   if(m=v.match(/^(-?[\d.]+)\s*,\s*(-?[\d.]+)$/))return[r(m[1]),r(m[2])];
-  if(m=v.match(/^([\d.]+)$/)){if(!base||!S.lastQ)return null;const[wx,wy]=W(S.lastQ);let a=Math.atan2(wy-base.y,wx-base.x);if(S.cmdShift)a=Math.round(a/(Math.PI/12))*(Math.PI/12);return[r(base.x+ +m[1]*Math.cos(a)),r(base.y+ +m[1]*Math.sin(a))]}
+  if(m=v.match(/^([\d.]+)$/)){if(!base||!S.lastQ)return null;const[wx,wy]=W(S.lastQ);const Ln=+m[1];let a=Math.atan2(wy-base.y,wx-base.x);S.cmdSnap="";if(S.cmdShift)a=Math.round(a/(Math.PI/12))*(Math.PI/12);else if(!S.cmdFree&&S.cfg.snap){const dA=(u,v)=>Math.abs(Math.atan2(Math.sin(u-v),Math.cos(u-v)));let best=null,bd=4*Math.PI/180;const a15=Math.round(a/(Math.PI/12))*(Math.PI/12);if(dA(a15,a)<bd){best=a15;bd=dA(a15,a);S.cmdSnap="angle"}const mi=S.mi,n=Math.floor(Ln/mi+1e-9);for(let i=-n;i<=n;i++){const gx=i*mi,r2=Ln*Ln-gx*gx;if(r2<0)continue;const gyr=Math.sqrt(r2)/mi,gi=Math.round(gyr);if(Math.abs(gyr-gi)>1e-6)continue;[gi,-gi].forEach(g=>{const tx=base.x+gx,ty=base.y+g*mi,ok=Math.abs(tx/mi-Math.round(tx/mi))<1e-6&&Math.abs(ty/mi-Math.round(ty/mi))<1e-6,ang=Math.atan2(g*mi,gx);if(ok&&dA(ang,a)<bd-1e-9){best=ang;bd=dA(ang,a);S.cmdSnap="grid"}})}if(best!==null)a=best}return[r(base.x+ +m[1]*Math.cos(a)),r(base.y+ +m[1]*Math.sin(a))]}
   return null}
  const nearEnd=k=>{const m=S.m[k],a=S.n[m.a],b=S.n[m.b],[wx,wy]=W(S.lastQ||{x:0,y:0});return Math.hypot(wx-a.x,wy-a.y)<=Math.hypot(wx-b.x,wy-b.y)?0:1};
  const cmdCtx=()=>{const t=S.tool,hk=S.hk||[];if(t==="member")return{lab:S.rb?"Length · L<angle · @dx,dy · x,y":"Start point x,y"};if(t==="node")return{lab:S.n.length?"x,y · @dx,dy · L<angle (from last node)":"x,y"};
@@ -610,7 +610,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
   if(t==="udl"&&hk[2]!==undefined)return{lab:`Length from nearest end, or from,to (m) · M${hk[2]}`,k:hk[2]};return null};
  function cmdEval(v,commit){const c=S.cmd;if(!c)return;const t=S.tool,nums=v.split(",").map(x=>x.trim()).filter(x=>x!=="").map(Number),ov=()=>$("ov");
   if(t==="member"||t==="node"){const base=t==="member"?(S.rb?S.n[S.rb.i]:null):S.n[S.n.length-1],p=parsePt(v,base);if(!p){if(ov())ov().innerHTML="";return}const[x,y]=p;
-   if(!commit){if(t==="member"&&S.rb){S.pv={i:S.rb.i,x:SX(x),y:SY(y)};render()}ov().innerHTML=`<circle cx="${SX(x)}" cy="${SY(y)}" r="6" fill="var(--halo)" stroke="#2d70b3" stroke-width="2"/>`+pill(SX(x),SY(y),[`(${fm(x)}, ${fm(y)})`+(t==="member"&&S.rb?` · L = ${Math.hypot(x-base.x,y-base.y).toFixed(3)} m ∠ ${(Math.atan2(y-base.y,x-base.x)*180/Math.PI).toFixed(1)}°`:"")].concat(t==="member"&&S.rb&&/^\s*[\d.]+\s*$/.test(v)?["move the mouse to aim · Shift snaps 15° · click or Enter to place"]:[]));return}
+   if(!commit){if(t==="member"&&S.rb){S.pv={i:S.rb.i,x:SX(x),y:SY(y)};render()}ov().innerHTML=`<circle cx="${SX(x)}" cy="${SY(y)}" r="6" fill="var(--halo)" stroke="#2d70b3" stroke-width="2"/>`+pill(SX(x),SY(y),[`(${fm(x)}, ${fm(y)})`+(t==="member"&&S.rb?` · L = ${Math.hypot(x-base.x,y-base.y).toFixed(3)} m ∠ ${(Math.atan2(y-base.y,x-base.x)*180/Math.PI).toFixed(1)}°`:"")].concat(t==="member"&&S.rb&&/^\s*[\d.]+\s*$/.test(v)?["move the mouse to aim · Shift snaps 15° · click or Enter to place"+(S.cmdSnap?` · snapped to ${S.cmdSnap==="grid"?"grid point":"15°"}`:"")]:[]));return}
    if(t==="node"){hist();S.n.push({x,y,sup:""});full();return}
    if(!S.rb){let j=S.n.findIndex(q=>Math.abs(q.x-x)<1e-6&&Math.abs(q.y-y)<1e-6);if(j<0){hist();S.n.push({x,y,sup:""});j=S.n.length-1;full()}S.rb={i:j};render();return}
    addTo({j:-1,x,y});full();return}
@@ -626,7 +626,7 @@ $("cmb").onchange=()=>{S.combo=$("cmb").value==="ENV"?"ENV":+$("cmb").value;upd(
  $("cmdi").addEventListener("keydown",e=>{e.stopPropagation();if(e.key==="Enter"){e.preventDefault();const v=e.target.value;cmdEval(v,true);cmdClose();$("cmdi").blur()}else if(e.key==="Escape"){e.preventDefault();cmdClose();$("cmdi").blur();render()}});
  $("cmdi").addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==$("cmdi")&&S.cmd){cmdClose();render()}},0));
  addEventListener("keydown",e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;if(/^[0-9.@]$/.test(e.key)&&["member","node","load","udl"].includes(S.tool)){if(cmdOpen(e.key)){e.preventDefault();e.stopImmediatePropagation()}}},true);
- sv.onpointerleave=()=>{const ov=$("ov");if(ov&&!d)ov.innerHTML="";$("xy").textContent=""};
+ sv.onpointerleave=()=>{const ov=$("ov");if(ov&&!d&&!S.cmd)ov.innerHTML="";$("xy").textContent=""};
  sv.addEventListener("wheel",e=>{e.preventDefault();const q=pt(e),px=e.deltaMode===1?16:e.deltaMode===2?S.H:1,dx=e.deltaX*px,dy=e.deltaY*px;
   if(e.ctrlKey||e.metaKey){zoom(Math.exp(-Math.max(-60,Math.min(60,dy))*.01),q.x,q.y);return}
   if(Math.abs(dx)>Math.abs(dy)){S.G.ox-=dx;render();return}
