@@ -468,7 +468,8 @@ function boxSelect(b,add){const L2R=b.x1>=b.x0,x0=Math.min(b.x0,b.x1),x1=Math.ma
  if(!add)clrMS();if(S.sel){S.ms[S.sel.t].add(S.sel.i);S.sel=null}
  S.n.forEach((p,i)=>{if(inR(X(p.x),Y(p.y)))S.ms.n.add(i)});
  S.m.forEach((m,k)=>{const a=S.n[m.a],c=S.n[m.b],ax=X(a.x),ay=Y(a.y),bx=X(c.x),by=Y(c.y);if(L2R?(inR(ax,ay)&&inR(bx,by)):clip(ax,ay,bx,by,x0,y0,x1,y1))S.ms.m.add(k)});
- S.L.forEach((l,i)=>{const p=loadAnchor(l);if(p&&inR(X(p[0]),Y(p[1])))S.ms.l.add(i)});
+ const lb={};document.querySelectorAll("#cv [data-l]").forEach(el=>{let bb;try{bb=el.getBBox()}catch(e){return}if(!bb.width&&!bb.height)return;const k=+el.dataset.l,o=lb[k];lb[k]=o?{x0:Math.min(o.x0,bb.x),y0:Math.min(o.y0,bb.y),x1:Math.max(o.x1,bb.x+bb.width),y1:Math.max(o.y1,bb.y+bb.height)}:{x0:bb.x,y0:bb.y,x1:bb.x+bb.width,y1:bb.y+bb.height}});
+ S.L.forEach((l,i)=>{const p=loadAnchor(l),r=lb[i],anc=p&&inR(X(p[0]),Y(p[1]));let hit=false;if(r)hit=L2R?(r.x0>=x0&&r.x1<=x1&&r.y0>=y0&&r.y1<=y1):(r.x0<=x1&&r.x1>=x0&&r.y0<=y1&&r.y1>=y0);if(hit||(!L2R&&anc))S.ms.l.add(i)});
  if(msCount()===1){const t=S.ms.n.size?"n":S.ms.m.size?"m":"l",i=[...S.ms[t]][0];sel(t,i);return}buildList();render();msHint()}
 function addTo(en){let j=en.j;hist();if(j<0){const f=S.n.findIndex(p=>Math.abs(p.x-en.x)<1e-6&&Math.abs(p.y-en.y)<1e-6);if(f>=0)j=f;else{S.n.push({x:en.x,y:en.y,sup:""});j=S.n.length-1}}const a=S.rb.i;if(j!==a&&!S.m.some(m=>(m.a===a&&m.b===j)||(m.a===j&&m.b===a)))S.m.push({a,b:j,t:S.def.t});S.rb={i:j}}
 function sel(t,i,scroll=true){clrMS();S.sel=t?{t,i}:null;buildList();popUI();if(t&&scroll){const r=document.querySelector(`#side [data-sel="${t}:${i}"]`);if(r)r.scrollIntoView({block:"nearest"})}render()}
